@@ -1,0 +1,26 @@
+before_install:
+  - sudo apt-get install -y gcc-arm-none-eabi libnewlib-arm-none-eabi
+language: c
+script:
+ - make -C ble-host/build/gcc
+ - make -C controller/build/gcc
+ - make -C projects/ble-apps/assettag/gcc
+ - make -C projects/ble-apps/cycling/gcc
+ - make -C projects/ble-apps/datc/gcc
+ - make -C projects/ble-apps/dats/gcc
+ - make -C projects/ble-apps/fit/gcc
+ - make -C projects/ble-apps/hidapp/gcc
+ - make -C projects/ble-apps/locator/gcc
+ - make -C projects/ble-apps/medc/gcc
+ - make -C projects/ble-apps/meds/gcc
+ - make -C projects/ble-apps/tag/gcc
+ - make -C projects/ble-apps/uribeacon/gcc
+ - make -C projects/ble-apps/watch/gcc
+ - make -C projects/ble-mesh-apps/lib/gcc
+ - make -C projects/ble-mesh-apps/light/gcc
+ - make -C projects/ble-mesh-apps/provisioner/gcc
+ - make -C projects/ble-mesh-apps/switch/gcc
+ - make -C projects/controller/ble4-ctr/gcc
+ - make -C projects/controller/ble5-ctr/gcc
+# - make -C projects/controller/mac154-ctr/gcc  # link error
+ - make -C wsf/build/gcc

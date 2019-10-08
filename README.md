@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/packetcraft-inc/cordio.svg?branch=master)](https://travis-ci.org/packetcraft-inc/cordio)
+
 ## Arm Cordio solutions
 
 Arm Cordio is a collection of Bluetooth Low Energy embedded protocol stacks. Included in these
