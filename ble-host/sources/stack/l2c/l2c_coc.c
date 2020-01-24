@@ -1600,7 +1600,7 @@ static void l2cCocReqTimeout(wsfMsgHdr_t *pMsg)
 /*************************************************************************************************/
 void L2cCocInit(void)
 {
-  l2cCb.l2cSignalingCback = l2cCocSignalingCback;
+  L2cRegister(L2C_CID_LE_SIGNALING, l2cCocSignalingCback, NULL);
   l2cCb.l2cCocCtrlCback = l2cCocCtrlCback;
   l2cCb.l2cDataCidCback = l2cCocDataCidCback;
 

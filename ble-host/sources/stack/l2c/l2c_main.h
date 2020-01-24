@@ -48,14 +48,19 @@ extern "C" {
 /* Data callback with CID */
 typedef void (*l2cDataCidCback_t)(uint16_t handle, uint16_t cid, uint16_t len, uint8_t *pPacket);
 
+/* Structure holding the callbacks for a particular cid */
+typedef struct l2cCback
+{
+  struct l2cCback *pNext;                     /* Pointer to next in queue */
+  uint8_t         cid;                        /* Channel identifier */
+  l2cDataCback_t  dataCback;                  /* Data callback for cid */
+  l2cCtrlCback_t  ctrlCback;                  /* Control callback for cid */
+} l2cCback_t;
+
 /* Main control block of the L2C subsystem */
 typedef struct
 {
-  l2cDataCback_t    attDataCback;             /* Data callback for ATT */
-  l2cDataCback_t    smpDataCback;             /* Data callback for SMP */
-  l2cDataCback_t    l2cSignalingCback;        /* Data callback for L2CAP signaling */
-  l2cCtrlCback_t    attCtrlCback;             /* Control callback for ATT */
-  l2cCtrlCback_t    smpCtrlCback;             /* Control callback for SMP */
+  wsfQueue_t        l2cCbackQueue;            /* List of registered callbacks */
   l2cCtrlCback_t    l2cCocCtrlCback;          /* Control callback for L2CAP connection oriented channels */
   l2cDataCback_t    masterRxSignalingPkt;     /* Master signaling packet processing function */
   l2cDataCback_t    slaveRxSignalingPkt;      /* Slave signaling packet processing function */

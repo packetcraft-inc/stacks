@@ -30,6 +30,7 @@
 #include "l2c_api.h"
 #include "l2c_main.h"
 #include "dm_api.h"
+#include "wsf_buf.h"
 
 /**************************************************************************************************
   Macros
@@ -41,22 +42,6 @@
 
 /* Control block */
 l2cCb_t l2cCb;
-
-/*************************************************************************************************/
-/*!
- *  \brief  Default callback function for unregistered CID.
- *
- *  \param  handle    The connection handle.
- *  \param  len       The length of the L2CAP payload data in pPacket.
- *  \param  pPacket   A buffer containing the packet.
- *
- *  \return None.
- */
-/*************************************************************************************************/
-static void l2cDefaultDataCback(uint16_t handle, uint16_t len, uint8_t *pPacket)
-{
-  L2C_TRACE_WARN0("rcvd data on uregistered cid");
-}
 
 /*************************************************************************************************/
 /*!
@@ -161,26 +146,30 @@ static void l2cHciAclCback(uint8_t *pPacket)
   /* verify L2CAP length vs HCI length */
   if (hciLen == (l2cLen + L2C_HDR_LEN))
   {
+    l2cCback_t *pL2cCback = l2cCb.l2cCbackQueue.pHead;
+
     /* parse CID */
     BSTREAM_TO_UINT16(cid, p);
 
-    switch (cid)
+    /* Search for a registered callback for this cid */
+    while (pL2cCback)
     {
-      case L2C_CID_LE_SIGNALING:
-        (*l2cCb.l2cSignalingCback)(handle, l2cLen, pPacket);
+      if (pL2cCback->cid == cid)
+      {
         break;
+      }
+      pL2cCback = pL2cCback->pNext;
+    }
 
-      case L2C_CID_ATT:
-        (*l2cCb.attDataCback)(handle, l2cLen, pPacket);
-        break;
-
-      case L2C_CID_SMP:
-        (*l2cCb.smpDataCback)(handle, l2cLen, pPacket);
-        break;
-
-      default:
-        (*l2cCb.l2cDataCidCback)(handle, cid, l2cLen, pPacket);
-        break;
+    if (pL2cCback)
+    {
+      /* A callback has been found, call it */
+      pL2cCback->dataCback(handle, l2cLen, pPacket);
+    }
+    else
+    {
+      /* No callback is registered, call the generic callback function */
+      (*l2cCb.l2cDataCidCback)(handle, cid, l2cLen, pPacket);
     }
   }
   /* else length mismatch */
@@ -212,11 +201,18 @@ static void l2cHciFlowCback(uint16_t handle, bool_t flowDisabled)
   /* get conn ID for handle */
   if ((hdr.param = DmConnIdByHandle(handle)) != DM_CONN_ID_NONE)
   {
+    l2cCback_t* pL2cCback = l2cCb.l2cCbackQueue.pHead;
     /* execute higher layer flow control callbacks */
-    hdr.event = flowDisabled;
-    (*l2cCb.attCtrlCback)(&hdr);
-    hdr.event = flowDisabled;
-    (*l2cCb.smpCtrlCback)(&hdr);
+    while (pL2cCback)
+    {
+      if (pL2cCback->ctrlCback)
+      {
+        hdr.event = flowDisabled;
+        pL2cCback->ctrlCback(&hdr);
+      }
+
+      pL2cCback = pL2cCback->pNext;
+    }
 
     /* execute connection oriented channel flow control callback */
     hdr.event = flowDisabled;
@@ -279,14 +275,11 @@ void *l2cMsgAlloc(uint16_t len)
 void L2cInit(void)
 {
   /* Initialize control block */
-  l2cCb.attDataCback = l2cDefaultDataCback;
-  l2cCb.smpDataCback = l2cDefaultDataCback;
-  l2cCb.l2cSignalingCback = l2cRxSignalingPkt;
-  l2cCb.attCtrlCback = l2cDefaultCtrlCback;
-  l2cCb.smpCtrlCback = l2cDefaultCtrlCback;
+  WSF_QUEUE_INIT(&l2cCb.l2cCbackQueue);
   l2cCb.l2cCocCtrlCback = l2cDefaultCtrlCback;
   l2cCb.l2cDataCidCback = l2cDefaultDataCidCback;
   l2cCb.identifier = 1;
+  L2cRegister(L2C_CID_LE_SIGNALING, l2cRxSignalingPkt, NULL);
 
   /* Register with HCI */
   HciAclRegister(l2cHciAclCback, l2cHciFlowCback);
@@ -305,21 +298,29 @@ void L2cInit(void)
 /*************************************************************************************************/
 void L2cRegister(uint16_t cid, l2cDataCback_t dataCback, l2cCtrlCback_t ctrlCback)
 {
-  WSF_ASSERT((cid == L2C_CID_ATT) || (cid == L2C_CID_SMP));
+  l2cCback_t* pL2cCback = l2cCb.l2cCbackQueue.pHead;
 
-  /* store the callbacks */
-  if (cid == L2C_CID_ATT)
+  /* Check whether a callback structure for this cid is already registered */
+  while (pL2cCback)
   {
-    /* registering for attribute protocol */
-    l2cCb.attDataCback = dataCback;
-    l2cCb.attCtrlCback = ctrlCback;
+    if (pL2cCback->cid == cid)
+    {
+      break;
+    }
+    pL2cCback = pL2cCback->pNext;
   }
-  else
+
+  if (!pL2cCback)
   {
-    /* registering for security manager protocol */
-    l2cCb.smpDataCback = dataCback;
-    l2cCb.smpCtrlCback = ctrlCback;
+    /* No callback has been registered, allocate a new structure and add to list */
+    pL2cCback = WsfBufAlloc(sizeof(l2cCback_t));
+    pL2cCback->cid = cid;
+    WsfQueueEnq(&l2cCb.l2cCbackQueue, pL2cCback);
   }
+
+  /* Update the callbacks */
+  pL2cCback->dataCback = dataCback;
+  pL2cCback->ctrlCback = ctrlCback;
 }
 
 /*************************************************************************************************/
