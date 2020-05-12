@@ -1,7 +1,7 @@
 /**
- * Copyright (c) 2017 - 2018, Nordic Semiconductor ASA
+ * Copyright (c) 2017 - 2019, Nordic Semiconductor ASA
  *
- *
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -77,6 +77,12 @@
 // CLOCK
 
 #if defined(NRF_CLOCK_ENABLED)
+
+#if defined(CLOCK_CONFIG_LF_CAL_ENABLED) && defined(CLOCK_CONFIG_LF_SRC)
+#if (CLOCK_CONFIG_LF_SRC == CLOCK_LFCLKSRC_SRC_RC)
+#define NRFX_CLOCK_CONFIG_LF_CAL_ENABLED 1
+#endif
+#endif
 
 #undef NRFX_CLOCK_ENABLED
 #define NRFX_CLOCK_ENABLED  NRF_CLOCK_ENABLED

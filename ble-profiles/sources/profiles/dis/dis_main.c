@@ -4,16 +4,16 @@
  *
  *  \brief  Device information service client.
  *
- *  Copyright (c) 2012-2018 Arm Ltd.
+ *  Copyright (c) 2012-2020 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -85,6 +85,20 @@ static const attcDiscChar_t disSid =
   0
 };
 
+/*! IEEE 11073-20601 regulatory certificate data  */
+static const attcDiscChar_t disRcd =
+{
+  attIeeeChUuid,
+  0
+};
+
+/*! PnP ID */
+static const attcDiscChar_t disPnpId =
+{
+  attPnpChUuid,
+  0
+};
+
 /*! List of characteristics to be discovered; order matches handle index enumeration  */
 static const attcDiscChar_t *disDiscCharList[] =
 {
@@ -94,7 +108,9 @@ static const attcDiscChar_t *disDiscCharList[] =
   &disHrs,              /*! Hardware revision string */
   &disFrs,              /*! Firmware revision string */
   &disSrs,              /*! Software revision string */
-  &disSid               /*! System ID */
+  &disSid,              /*! System ID */
+  &disRcd,              /*! IEEE 11073-20601 regulatory certificate data */
+  &disPnpId             /*! PnP ID */
 };
 
 /* sanity check:  make sure handle list length matches characteristic list length */
@@ -193,6 +209,19 @@ uint8_t DisValueUpdate(uint16_t *pHdlList, attEvt_t *pMsg)
     if (pMsg->valueLen == CH_SYSTEM_ID_LEN)
     {
       APP_TRACE_INFO0("System ID read ok");
+    }
+  }
+  /* IEEE 11073-20601 regulatory certificate data */
+  else if (pMsg->handle == pHdlList[DIS_RCD_HDL_IDX])
+  {
+    APP_TRACE_INFO1("Regulatory certificate data read (length: %d)", pMsg->valueLen);
+  }
+  /* PnP ID */
+  else if (pMsg->handle == pHdlList[DIS_PNP_ID_HDL_IDX])
+  {
+    if (pMsg->valueLen == CH_PNP_ID_LEN)
+    {
+      APP_TRACE_INFO0("PnP ID read ok");
     }
   }
   /* handle not found in list */

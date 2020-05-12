@@ -2,7 +2,14 @@
 @defgroup nrfx_drivers Drivers
 @{
 @brief List of all drivers available in nrfx.
+
+@defgroup nrf_aar AAR
+
 @defgroup nrf_adc ADC
+
+@defgroup nrf_acl ACL
+
+@defgroup nrf_bprot BPROT
 
 @defgroup nrf_ccm CCM
 
@@ -10,7 +17,11 @@
 
 @defgroup nrf_comp COMP
 
+@defgroup nrf_dppi DPPI
+
 @defgroup nrf_ecb ECB
+
+@defgroup nrf_ficr FICR
 
 @defgroup nrf_gpio GPIO
 
@@ -18,7 +29,15 @@
 
 @defgroup nrf_i2s I2S
 
+@defgroup nrf_kmu KMU
+
 @defgroup nrf_lpcomp LPCOMP
+
+@defgroup nrf_mpu MPU
+
+@defgroup nrf_mwu MWU
+
+@defgroup nrf_nfct NFCT
 
 @defgroup nrf_nvmc NVMC
 
@@ -48,6 +67,8 @@
 
 @defgroup nrf_spis SPIS
 
+@defgroup nrf_spu SPU
+
 @defgroup nrf_systick Cortex-M Systick
 
 @defgroup nrf_swi_egu SWI/EGU
@@ -67,6 +88,8 @@
 @defgroup nrf_uarte UARTE
 
 @defgroup nrf_usbd USBD
+
+@defgroup nrf_vmc VMC
 
 @defgroup nrf_wdt WDT
 @}

@@ -4,16 +4,16 @@
  *
  *  \brief  Main stack API.
  *
- *  Copyright (c) 2010-2019 Arm Ltd.
+ *  Copyright (c) 2010-2019 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -57,6 +57,9 @@ extern "C"
 
 /*! \brief Mesh callback events */
 #define MESH_CBACK_START                           0xA0  /*! Mesh callback event starting value */
+
+/*! \brief The model shares the subscription list from a root model */
+#define MMDL_SUBSCR_LIST_SHARED                    0xFF
 
 /*! \brief Mesh events */
 enum meshEvents
@@ -155,6 +158,14 @@ typedef union meshModelEvt_tag
   meshModelPeriodicPubEvt_t periodicPubEvt; /*!< Mesh Model periodic publish timer expired event */
 } meshModelEvt_t;
 
+/*! \brief Mesh model subscription list link */
+typedef struct meshModelLink_tag
+{
+  modelId_t            rootModelId;           /*!< Identifier of the model which shares the subscription list */
+  meshElementId_t      rootElementId;         /*!< Identifier of the element which shares the subscription list */
+  bool_t               isSig;                 /*!< TRUE if model identifier is SIG, FALSE for vendor */
+}meshModelLink_t;
+
 /*! \brief Mesh SIG model definition */
 typedef struct meshSigModel_tag
 {
@@ -163,6 +174,7 @@ typedef struct meshSigModel_tag
   const meshMsgOpcode_t  *pRcvdOpcodeArray;   /*!< Pointer to array of supported received
                                                *   SIG opcodes
                                                */
+ const  meshModelLink_t  *pModelLink;         /*!< Pointer to the model link descriptor */
   meshSigModelId_t       modelId;             /*!< Model ID, as assigned by the SIG */
   uint8_t                opcodeCount;         /*!< Number of SIG defined opcodes
                                                *   supported
@@ -179,6 +191,7 @@ typedef struct meshVendorModel_tag
   const meshMsgOpcode_t     *pRcvdOpcodeArray;   /*!< Pointer to array of supported received
                                                   *   SIG opcodes
                                                   */
+  meshModelLink_t           *pModelLink;         /*!< Pointer to the model link descriptor */
   meshVendorModelId_t       modelId;             /*!< Model ID, as assigned by vendor */
   uint8_t                   opcodeCount;         /*!< Number of SIG defined opcodes supported */
   uint8_t                   subscrListSize;      /*!< Subscription list size */

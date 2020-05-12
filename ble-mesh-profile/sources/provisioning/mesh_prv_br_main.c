@@ -4,16 +4,16 @@
  *
  *  \brief  Mesh Provisioning Bearer module implementation.
  *
- *  Copyright (c) 2010-2019 Arm Ltd.
+ *  Copyright (c) 2010-2019 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -659,7 +659,7 @@ static void meshPrvBrStartRxTransaction(const uint8_t *pGenPdu, uint8_t pduLen)
  *  \return    TRUE if the PDU is new, FALSE otherwise.
  */
 /*************************************************************************************************/
-static bool_t meshPrvBrCheckNewPdu(const uint8_t *pGenPdu, uint8_t pduLen)
+static bool_t meshPrvBrCheckNewPdu(const uint8_t *pGenPdu, uint8_t pduLen, uint8_t tranNum)
 {
   (void)pduLen;
 
@@ -677,9 +677,8 @@ static bool_t meshPrvBrCheckNewPdu(const uint8_t *pGenPdu, uint8_t pduLen)
     return TRUE;
   }
 
-  /* Check if opcode is greater than the last received one */
-  return (pGenPdu[MESH_PRV_MAX_SEG0_PB_HDR_SIZE + MESH_PRV_PDU_OPCODE_INDEX] >
-          prvBrCb.pbAdvSessionInfo.rxLastReceivedOpcode);
+  /* Check if Transaction Number is greater than the last received one */
+  return (tranNum > prvBrCb.pbAdvSessionInfo.receivedTranNum);
 }
 
 /*************************************************************************************************/
@@ -1115,7 +1114,7 @@ static void meshBrPrvPduRecvCback(meshBrInterfaceId_t brIfId, const uint8_t *pPb
       {
         /* Check if peer is sending a new PDU */
         if (TRUE == meshPrvBrCheckNewPdu(&pPbPdu[MESH_PRV_PB_ADV_GEN_PDU_OFFSET],
-                                         pduLen - MESH_PRV_PB_ADV_GEN_PDU_OFFSET))
+                                         pduLen - MESH_PRV_PB_ADV_GEN_PDU_OFFSET, tranNum))
         {
           /* Check if Tx transaction is in progress and consider it complete.
              This is necessary because we may have lost the ACK from the peer. */
@@ -1125,9 +1124,10 @@ static void meshBrPrvPduRecvCback(meshBrInterfaceId_t brIfId, const uint8_t *pPb
             (void)meshPrvBrEndTxTransaction();
           }
         }
-        else if (pPbPdu[MESH_PRV_PB_ADV_GEN_PDU_OFFSET + MESH_PRV_MAX_SEG0_PB_HDR_SIZE +
+        else if ((pPbPdu[MESH_PRV_PB_ADV_GEN_PDU_OFFSET + MESH_PRV_MAX_SEG0_PB_HDR_SIZE +
                         MESH_PRV_PDU_OPCODE_INDEX] ==
-                 prvBrCb.pbAdvSessionInfo.rxLastReceivedOpcode)
+                 prvBrCb.pbAdvSessionInfo.rxLastReceivedOpcode) &&
+            (prvBrCb.pbAdvSessionInfo.receivedTranNum == tranNum))
         {
           /* Ack only the first old PDU */
           meshPrvBrPrepareAckTransaction();

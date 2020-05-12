@@ -1,7 +1,7 @@
 /**
- * Copyright (c) 2018, Nordic Semiconductor ASA
+ * Copyright (c) 2018 - 2019, Nordic Semiconductor ASA
  *
- *
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -58,8 +58,8 @@
           NRF_MODULE_ENABLED(NRF_CRYPTO_BACKEND_OBERON_HMAC_SHA512) )
 
 #include "nrf_crypto_hmac_shared.h"
-#include "occ_hmac_sha256.h"
-#include "occ_hmac_sha512.h"
+#include "ocrypto_hmac_sha256.h"
+#include "ocrypto_hmac_sha512.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -85,7 +85,7 @@ extern "C" {
 typedef struct
 {
     nrf_crypto_hmac_internal_context_t  header;     //!< Internal nrf_crypto_hmac context.
-    occ_hmac_sha256_ctx                 oberon_ctx; //!< Oberon context object.
+    ocrypto_hmac_sha256_ctx             oberon_ctx; //!< Oberon context object.
 } nrf_crypto_backend_oberon_hmac_sha256_context_t;
 
 
@@ -114,7 +114,7 @@ typedef nrf_crypto_backend_oberon_hmac_sha256_context_t nrf_crypto_backend_hmac_
 typedef struct
 {
     nrf_crypto_hmac_internal_context_t  header;     //!< Internal nrf_crypto_hmac context header.
-    occ_hmac_sha512_ctx                 oberon_ctx; //!< Oberon context object.
+    ocrypto_hmac_sha512_ctx             oberon_ctx; //!< Oberon context object.
 } nrf_crypto_backend_oberon_hmac_sha512_context_t;
 
 /**

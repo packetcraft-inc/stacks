@@ -4,16 +4,16 @@
  *
  *  \brief  HCI event module.
  *
- *  Copyright (c) 2009-2018 Arm Ltd.
+ *  Copyright (c) 2009-2018 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -84,13 +84,22 @@ static const uint8_t hciEvtLookup[] =
   HCI_LE_CH_SEL_ALGO_CBACK_EVT,                        /* LL_CH_SEL_ALGO_IND */
   /* --- Core Spec 5.1 --- */
   0,                                                   /* LL_CONNLESS_IQ_REPORT_IND */
-  0,                                                   /* LL_CONN_IQ_REPORT_IND */
-  0,                                                   /* LL_CTE_REQ_FAILED_IND */
+  HCI_LE_CONN_IQ_REPORT_CBACK_EVT,                     /* LL_CONN_IQ_REPORT_IND */
+  HCI_LE_CTE_REQ_FAILED_CBACK_EVT,                     /* LL_CTE_REQ_FAILED_IND */
   HCI_LE_PER_SYNC_TRSF_RCVD_CBACK_EVT,                 /* LL_PER_SYNC_TRSF_RCVD_IND */
-  /* --- Core Spec Milan --- */
-  HCI_CIS_EST_CBACK_EVT,                               /* LL_CIS_EST_IND */
-  HCI_CIS_REQ_CBACK_EVT,                               /* LL_CIS_REQ_IND */
-  HCI_REQ_PEER_SCA_CBACK_EVT                           /* LL_REQ_PEER_SCA_IND */
+  /* --- Core Spec 5.2 --- */
+  HCI_LE_CIS_EST_CBACK_EVT,                            /* LL_CIS_EST_IND */
+  HCI_LE_CIS_REQ_CBACK_EVT,                            /* LL_CIS_REQ_IND */
+  HCI_LE_CREATE_BIG_CMPL_CBACK_EVT,                    /* LL_CREATE_BIG_CNF */
+  HCI_LE_TERM_BIG_CMPL_CBACK_EVT,                      /* LL_TERM_BIG_IND */
+  HCI_LE_BIG_TERM_SYNC_CMPL_CBACK_EVT,                 /* LL_BIG_TERM_SYNC_CNF */
+  HCI_LE_BIG_SYNC_EST_CBACK_EVT,                       /* LL_BIG_SYNC_EST_IND */
+  HCI_LE_BIG_SYNC_LOST_CBACK_EVT,                      /* LL_BIG_SYNC_LOST_IND */
+  HCI_LE_REQ_PEER_SCA_CBACK_EVT,                       /* LL_REQ_PEER_SCA_IND */
+  0,                                                   /* LL_TX_POWER_REPORTING_IND */
+  0,                                                   /* LL_PATH_LOSS_REPORTING_IND */
+  0,                                                   /* LL_ISO_EVT_CMPL_IND */
+  HCI_LE_BIG_INFO_ADV_REPORT_CBACK_EVT                 /* LL_BIG_INFO_ADV_REPORT_IND */
 };
 
 /* Rand command read counter */
@@ -183,6 +192,12 @@ void hciEvtProcessMsg(uint8_t *pEvt)
       /* restore LL state */
       LlGetBdAddr(hciCoreCb.bdAddr);
 
+      /* if Isochronous Channels (Host support) is supported and included */
+      if (hciLeSupFeatCfg & HCI_LE_SUP_FEAT_ISO_HOST_SUPPORT)
+      {
+        LlSetHostFeatures(HCI_LE_FEAT_BIT_ISO_HOST_SUPPORT, TRUE);
+      }
+
       /* if LL Privacy is supported by Controller and included */
       if ((HciGetLeSupFeat() & HCI_LE_SUP_FEAT_PRIVACY) &&
           (hciLeSupFeatCfg & HCI_LE_SUP_FEAT_PRIVACY))
@@ -257,10 +272,18 @@ void hciEvtProcessMsg(uint8_t *pEvt)
       break;
 
     case LL_CONN_IND:
+    case LL_CIS_EST_IND:
       /* if connection created successfully */
       if (pMsg->hdr.status == LL_SUCCESS)
       {
-        hciCoreConnOpen(pMsg->connInd.handle);
+        if (event == LL_CONN_IND)
+        {
+          hciCoreConnOpen(pMsg->connInd.handle);
+        }
+        else
+        {
+          hciCoreCisOpen(pMsg->connInd.handle);
+        }
       }
       /* fall through */
 
@@ -293,18 +316,46 @@ void hciEvtProcessMsg(uint8_t *pEvt)
     case LL_PER_ADV_SYNC_LOST_IND:
     case LL_PER_ADV_REPORT_IND:
     case LL_CH_SEL_ALGO_IND:
+    case LL_CONNLESS_IQ_REPORT_IND:
+    case LL_CONN_IQ_REPORT_IND:
+    case LL_CTE_REQ_FAILED_IND:
+    case LL_PER_SYNC_TRSF_RCVD_IND:
+    case LL_CIS_REQ_IND:
+    case LL_CREATE_BIG_CNF:
+    case LL_TERM_BIG_IND:
+    case LL_BIG_TERM_SYNC_CNF:
+    case LL_BIG_SYNC_EST_IND:
+    case LL_BIG_SYNC_LOST_IND:
+    case LL_REQ_PEER_SCA_IND:
+    case LL_TX_POWER_REPORTING_IND:
+    case LL_PATH_LOSS_REPORTING_IND:
+    case LL_ISO_EVT_CMPL_IND:
+    case LL_BIG_INFO_ADV_REPORT_IND:
 
       /* lookup HCI event callback code */
       pMsg->hdr.event = hciEvtLookup[pMsg->hdr.event];
 
+      if (pMsg->hdr.event == HCI_DISCONNECT_CMPL_CBACK_EVT)
+      {
+        /* if disconnect is for CIS connection */
+        if (hciCoreCisByHandle(pMsg->disconnectInd.handle) != NULL)
+        {
+          pMsg->hdr.event = HCI_CIS_DISCONNECT_CMPL_CBACK_EVT;
+        }
+      }
+
       /* Note: HCI and LL event structures identical, no translation needed */
       hciCb.evtCback((hciEvt_t *)pMsg);
 
-      if (event == LL_DISCONNECT_IND)
+      /* execute core procedure for connection close after callback */
+      if (pMsg->hdr.event == HCI_DISCONNECT_CMPL_CBACK_EVT)
       {
         hciCoreConnClose(pMsg->disconnectInd.handle);
       }
-
+      else if (pMsg->hdr.event == HCI_CIS_DISCONNECT_CMPL_CBACK_EVT)
+      {
+        hciCoreCisClose(pMsg->disconnectInd.handle);
+      }
       break;
 
     default:

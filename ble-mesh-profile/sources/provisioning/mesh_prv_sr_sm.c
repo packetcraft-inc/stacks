@@ -4,16 +4,16 @@
  *
  *  \brief  Mesh Provisioning Server state machine.
  *
- *  Copyright (c) 2010-2018 Arm Ltd.
+ *  Copyright (c) 2010-2018 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -63,6 +63,7 @@ enum
   PRV_SR_ACT_WAIT_INPUT,                 /* (3b) Wait for user input */
   PRV_SR_ACT_SEND_INPUT_COMPLETE,        /* (3b) Send Provisioning Input Complete PDU */
   PRV_SR_ACT_WAIT_CONFIRMATION,          /* (3)  Wait for Provisioning Confirmation PDU */
+  PRV_SR_ACT_SAVE_CONFIRMATION,          /* (3)  Save the provisioning confirmation */
   PRV_SR_ACT_CALC_CONFIRMATION,          /* (3)  Calculate the provisioning confirmation */
   PRV_SR_ACT_SEND_CONFIRMATION,          /* (3)  Send Provisioning Confirmation PDU */
   PRV_SR_ACT_WAIT_RANDOM,                /* (3)  Wait for Provisioning Random PDU */
@@ -104,6 +105,7 @@ static const meshPrvSrAct_t prvSrActionTbl[] =
   meshPrvSrActWaitInput,                  /* (3b) Wait for user input */
   meshPrvSrActSendInputComplete,          /* (3b) Send Provisioning Input Complete PDU */
   meshPrvSrActWaitConfirmation,           /* (3)  Wait for Provisioning Confirmation PDU */
+  meshPrvSrActSaveConfirmation,           /* (3)  Save the peer provisioning confirmation */
   meshPrvSrActCalcConfirmation,           /* (3)  Calculate the provisioning confirmation */
   meshPrvSrActSendConfirmation,           /* (3)  Send Provisioning Confirmation PDU */
   meshPrvSrActWaitRandom,                 /* (3)  Wait for Provisioning Random PDU */
@@ -218,6 +220,7 @@ static const meshPrvSrTblEntry_t prvSrStateTblGeneratePublicKey[] =
 {
   /* Event                              Next state                     Action  */
   { PRV_SR_EVT_PUBLIC_KEY_GENERATED,   PRV_SR_ST_VALIDATE_PUBLIC_KEY,  PRV_SR_ACT_VALIDATE_PUBLIC_KEY },
+  { PRV_SR_EVT_RECV_CONFIRMATION,      PRV_SR_ST_NO_STATE_CHANGE,      PRV_SR_ACT_SAVE_CONFIRMATION },
   { 0,                                 0,                              0 }
 };
 
@@ -231,6 +234,7 @@ static const meshPrvSrTblEntry_t prvSrStateTblValidatePublicKey[] =
                                                                       Provisioning Client has the public key
                                                                       of the Provisioning Server from OOB
                                                                     */
+  { PRV_SR_EVT_RECV_CONFIRMATION,    PRV_SR_ST_NO_STATE_CHANGE,     PRV_SR_ACT_SAVE_CONFIRMATION },
   { 0,                               0,                             0 }
 };
 

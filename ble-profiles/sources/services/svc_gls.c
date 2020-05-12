@@ -4,16 +4,16 @@
  *
  *  \brief  Example Glucose service implementation.
  *
- *  Copyright (c) 2012-2019 Arm Ltd.
+ *  Copyright (c) 2012-2019 Arm Ltd. All Rights Reserved.
  *
  *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -42,6 +42,7 @@
 /*! Characteristic write permissions */
 #ifndef GLS_SEC_PERMIT_WRITE
 #define GLS_SEC_PERMIT_WRITE (ATTS_PERMIT_WRITE | ATTS_PERMIT_WRITE_ENC)
+#define GLS_SEC_PERMIT_WRITE_AUTH (ATTS_PERMIT_WRITE | ATTS_PERMIT_WRITE_ENC | ATTS_PERMIT_WRITE_AUTH)
 #endif
 
 /**************************************************************************************************
@@ -199,7 +200,7 @@ static const attsAttr_t glsList[] =
     (uint16_t *) &glsLenRacp,
     ATT_DEFAULT_PAYLOAD_LEN,
     (ATTS_SET_VARIABLE_LEN | ATTS_SET_WRITE_CBACK),
-    GLS_SEC_PERMIT_WRITE
+    GLS_SEC_PERMIT_WRITE_AUTH
   },
   /* Client characteristic configuration descriptor */
   {

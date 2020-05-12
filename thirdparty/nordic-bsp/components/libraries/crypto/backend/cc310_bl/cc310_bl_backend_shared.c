@@ -1,7 +1,7 @@
 /**
- * Copyright (c) 2018, Nordic Semiconductor ASA
+ * Copyright (c) 2018 - 2019, Nordic Semiconductor ASA
  *
- *
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -50,8 +50,21 @@ void cc310_bl_backend_enable(void)
     // Enable the cryptocell hardware
     NRF_CRYPTOCELL->ENABLE = 1;
 
+#if defined(NRF_CRYPTO_BACKEND_CC310_BL_INTERRUPTS_ENABLED) && (NRF_CRYPTO_BACKEND_CC310_BL_INTERRUPTS_ENABLED == 1)
+
     // Enable the CryptoCell IRQ
     NVIC_EnableIRQ(CRYPTOCELL_IRQn);
+
+#elif defined(NRF_CRYPTO_BACKEND_CC310_BL_INTERRUPTS_ENABLED) && (NRF_CRYPTO_BACKEND_CC310_BL_INTERRUPTS_ENABLED == 0)
+
+    // Do nothing
+
+#else
+
+    #warning NRF_CRYPTO_BACKEND_CC310_BL_INTERRUPTS_ENABLED define not found in sdk_config.h (Is the sdk_config.h valid?).
+
+#endif
+
 }
 
 
@@ -60,8 +73,21 @@ void cc310_bl_backend_disable(void)
     // Enable the cryptocell hardware
     NRF_CRYPTOCELL->ENABLE = 0;
 
+#if defined(NRF_CRYPTO_BACKEND_CC310_BL_INTERRUPTS_ENABLED) && (NRF_CRYPTO_BACKEND_CC310_BL_INTERRUPTS_ENABLED == 1)
+
     // Disable the CryptoCell IRQ
     NVIC_DisableIRQ(CRYPTOCELL_IRQn);
+
+#elif defined(NRF_CRYPTO_BACKEND_CC310_BL_INTERRUPTS_ENABLED) && (NRF_CRYPTO_BACKEND_CC310_BL_INTERRUPTS_ENABLED == 0)
+
+    // Do nothing
+
+#else
+
+    #warning NRF_CRYPTO_BACKEND_CC310_BL_INTERRUPTS_ENABLED define not found in sdk_config.h (Is the sdk_config.h valid?).
+
+#endif
+
 }
 
 

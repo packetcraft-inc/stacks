@@ -4,16 +4,16 @@
  *
  *  \brief  SAR Rx history module.
  *
- *  Copyright (c) 2010-2019 Arm Ltd.
+ *  Copyright (c) 2010-2019 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -227,7 +227,6 @@ bool_t MeshSarRxHistoryCheck(meshAddress_t srcAddr, uint32_t seqNo, uint16_t seq
                              uint8_t iviLsb, uint8_t segN, bool_t *pOutSendAck, bool_t *pOutObo)
 {
   meshSarRxHistoryEntry_t *pEntry;
-  uint16_t count;
 
   /* By default, we do not send any Ack */
   *pOutSendAck = FALSE;
@@ -242,11 +241,8 @@ bool_t MeshSarRxHistoryCheck(meshAddress_t srcAddr, uint32_t seqNo, uint16_t seq
   /* Point to start of the queue. */
   pEntry = (meshSarRxHistoryEntry_t *)(&(sarRxHistoryCb.history.usedHistQueue))->pHead;
 
-  /* Get number of used entries. */
-  count = WsfQueueCount(&(sarRxHistoryCb.history.usedHistQueue));
-
   /* Search from head to tail to always check the latest entries first. */
-  while (count > 0)
+  while (pEntry != NULL)
   {
     /* Find the same source address */
     if (pEntry->srcAddr == srcAddr)
@@ -283,8 +279,6 @@ bool_t MeshSarRxHistoryCheck(meshAddress_t srcAddr, uint32_t seqNo, uint16_t seq
     }
     /* Move to next entry */
     pEntry = (meshSarRxHistoryEntry_t *)(pEntry->pNext);
-    /* Decrement count. */
-    count--;
   }
 
   return TRUE;

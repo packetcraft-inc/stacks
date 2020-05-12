@@ -4,16 +4,16 @@
  *
  *  \brief  Link layer controller master connection state machine action routines.
  *
- *  Copyright (c) 2013-2018 Arm Ltd.
+ *  Copyright (c) 2013-2018 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -36,8 +36,6 @@
  *  \brief      Send connection update request PDU to peer.
  *
  *  \param      pCtx    Connection context.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrSendConnUpdateInd(lctrConnCtx_t *pCtx)
@@ -60,7 +58,7 @@ void lctrSendConnUpdateInd(lctrConnCtx_t *pCtx)
 
   uint32_t interMinUsec = LCTR_CONN_IND_US(pCtx->connUpdSpec.connIntervalMin);
   uint32_t interMaxUsec = LCTR_CONN_IND_US(pCtx->connUpdSpec.connIntervalMax);
-  uint32_t durUsec = pCtx->localConnDurUsec;
+  uint32_t durUsec = pCtx->effConnDurUsec;
   uint32_t connIntervalUsec;
 
   /* Accommodate peer PreferredPeriodicity. */
@@ -84,8 +82,6 @@ void lctrSendConnUpdateInd(lctrConnCtx_t *pCtx)
  *  \brief      Reload an empty BOD with a data PDU.
  *
  *  \param      pCtx    Connection context.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrMstReloadDataPdu(lctrConnCtx_t *pCtx)

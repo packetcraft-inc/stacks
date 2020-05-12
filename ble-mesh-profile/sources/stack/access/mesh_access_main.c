@@ -4,16 +4,16 @@
  *
  *  \brief  Access module implementation.
  *
- *  Copyright (c) 2010-2019 Arm Ltd.
+ *  Copyright (c) 2010-2019 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -94,6 +94,13 @@ typedef struct meshAccToMdlMsgInfo_tag
   uint16_t        netKeyIndex;     /*!< Global Network Key identifier */
   bool_t          recvOnUnicast;   /*!< Indicates if initial destination address was unicast */
 } meshAccToMdlMsgInfo_t;
+
+/**************************************************************************************************
+  Function Prototypes
+**************************************************************************************************/
+
+static void meshAccCancelPendingRetrans(meshAddress_t src, const uint8_t *pAccPduOpcode, 
+                                        uint8_t accPduOpcodeLen);
 
 /**************************************************************************************************
   Global Variables
@@ -300,52 +307,46 @@ static meshAddress_t meshAccFixedGroupToUnicast(meshAddress_t dst)
 /*************************************************************************************************/
 static void meshAccSendMsgToCoreMdl(meshAccToMdlMsgInfo_t *pAccToMdlMsgInfo, meshElementId_t elemId)
 {
-  meshAccCoreMdl_t *ptr;
-  uint16_t count;
+  meshAccCoreMdl_t *pCoreMdl;
   uint8_t opIdx;
 
-  /* Get core models count. */
-  count = WsfQueueCount(&(meshAccCb.coreMdlQueue));
+  /* Point to start of the queue. */
+  pCoreMdl = (meshAccCoreMdl_t *)(&(meshAccCb.coreMdlQueue))->pHead;
 
-  while (count > 0)
+  while (pCoreMdl != NULL)
   {
-    /* Get identification information. */
-    ptr = (meshAccCoreMdl_t *)WsfQueueDeq(&(meshAccCb.coreMdlQueue));
-
-    /* Enqueue back. */
-    WsfQueueEnq(&(meshAccCb.coreMdlQueue), (void *)ptr);
-
     /* Check if registered element matches destination element. */
     /* Note: pointer cannot be NULL */
     /* coverity[dereference] */
-    if (ptr->elemId == elemId)
+    if (pCoreMdl->elemId == elemId)
     {
       /* Iterate through the opcode list. */
-      for (opIdx = 0; opIdx < ptr->opcodeArrayLen; opIdx++)
+      for (opIdx = 0; opIdx < pCoreMdl->opcodeArrayLen; opIdx++)
       {
         /* Check if opcodes don't match. */
-        if ((pAccToMdlMsgInfo->opcode.opcodeBytes[0] != ptr->pOpcodeArray[opIdx].opcodeBytes[0]))
+        if ((pAccToMdlMsgInfo->opcode.opcodeBytes[0] != pCoreMdl->pOpcodeArray[opIdx].opcodeBytes[0]))
         {
           continue;
         }
         if ((MESH_OPCODE_SIZE(pAccToMdlMsgInfo->opcode) > 1) &&
-            ((pAccToMdlMsgInfo->opcode.opcodeBytes[1] != ptr->pOpcodeArray[opIdx].opcodeBytes[1])))
+            ((pAccToMdlMsgInfo->opcode.opcodeBytes[1] != pCoreMdl->pOpcodeArray[opIdx].opcodeBytes[1])))
         {
           continue;
         }
         if ((MESH_OPCODE_SIZE(pAccToMdlMsgInfo->opcode) > 2) &&
-            ((pAccToMdlMsgInfo->opcode.opcodeBytes[2] != ptr->pOpcodeArray[opIdx].opcodeBytes[2])))
+            ((pAccToMdlMsgInfo->opcode.opcodeBytes[2] != pCoreMdl->pOpcodeArray[opIdx].opcodeBytes[2])))
         {
           continue;
         }
         /* Invoke callback. */
-        ptr->msgRecvCback(opIdx, pAccToMdlMsgInfo->pMsgParam,
+        pCoreMdl->msgRecvCback(opIdx, pAccToMdlMsgInfo->pMsgParam,
                           pAccToMdlMsgInfo->msgParamLen, pAccToMdlMsgInfo->src, elemId,
                           pAccToMdlMsgInfo->ttl, pAccToMdlMsgInfo->netKeyIndex);
         return;
       }
     }
-    count--;
+    /* Move to next entry */
+    pCoreMdl = pCoreMdl->pNext;
   }
 }
 
@@ -736,6 +737,11 @@ static void meshAccSendMsg(meshUtrAccPduTxInfo_t *pAllocPduInfo, const meshMsgIn
     pUtrAccPduTxInfo->friendLpnAddr = meshAccCb.friendAddrFromSubnetCback(netKeyIndex);
   }
 
+  /* Errata 10578: all pending retransmissions of the previous message published by the
+   * model instance shall be canceled.
+   */
+  meshAccCancelPendingRetrans(src, pUtrAccPduTxInfo->pAccPduOpcode, pUtrAccPduTxInfo->accPduOpcodeLen);
+
   /* Send PDU information to Upper Transport. */
   MeshUtrSendAccPdu(pUtrAccPduTxInfo);
 
@@ -795,6 +801,57 @@ static void meshAccPubRetransTmrCback(uint16_t tmrUid)
     /* Move to next entry. */
     prev = ptr;
     ptr = (meshAccPduPubTxInfo_t *)(ptr->pNext);
+  }
+}
+
+/*************************************************************************************************/
+/*!
+ *  \brief     Cancel all pending retransmissions for a model instance.
+ *
+ *  \param[in] src              The source address
+ *  \param[in] pAccPduOpcode    Pointer to the opcode
+ *  \param[in] accPduOpcodeLen  The length of the opcode
+ *
+ *  \return    None.
+ */
+/*************************************************************************************************/
+static void meshAccCancelPendingRetrans(meshAddress_t src, const uint8_t *pAccPduOpcode, 
+                                        uint8_t accPduOpcodeLen)
+{
+  meshAccPduPubTxInfo_t *ptr, *prev, *next;
+
+  /* Point to start of the queue. */
+  ptr = (meshAccPduPubTxInfo_t *)(meshAccCb.pubRetransQueue.pHead);
+  prev = NULL;
+
+  /* Parse the queue. */
+  while (ptr != NULL)
+  {
+    next = (meshAccPduPubTxInfo_t *)(ptr->pNext);
+
+    /* Check if the retransmission is done by the same model instance
+     * (same source address and opcode)
+     */
+    if ((ptr->utrAccPduTxInfo.src == src) &&
+        (ptr->utrAccPduTxInfo.accPduOpcodeLen == accPduOpcodeLen) &&
+        (memcmp(ptr->utrAccPduTxInfo.pAccPduOpcode, pAccPduOpcode, accPduOpcodeLen) == 0))
+    {
+      /* Remove from queue. */
+      WsfQueueRemove(&(meshAccCb.pubRetransQueue), ptr, prev);
+
+      /* Stop timer. */
+      WsfTimerStop(&(ptr->retransTmr));
+
+      /* Free the allocated memory. */
+      WsfBufFree(ptr);
+    }
+    else
+    {
+      prev = ptr;
+    }
+
+    /* Move to next entry. */
+    ptr = next;
   }
 }
 
@@ -1068,7 +1125,6 @@ void MeshAccRegisterCoreModel(meshAccCoreMdl_t *pCoreMdl)
 void MeshAccGetNumCoreModels(uint8_t elemId, uint8_t *pOutNumSig, uint8_t *pOutNumVendor)
 {
   meshAccCoreMdl_t *pCoreMdl;
-  uint16_t qCount = 0;
 
   WSF_ASSERT(pOutNumSig != NULL);
   WSF_ASSERT(pOutNumVendor != NULL);
@@ -1076,14 +1132,11 @@ void MeshAccGetNumCoreModels(uint8_t elemId, uint8_t *pOutNumSig, uint8_t *pOutN
   *pOutNumSig = 0;
   *pOutNumVendor = 0;
 
-  /* Get Core Model queue count. */
-  qCount = WsfQueueCount(&(meshAccCb.coreMdlQueue));
+  /* Point to start of the queue. */
+  pCoreMdl = (meshAccCoreMdl_t *)(&(meshAccCb.coreMdlQueue))->pHead;
 
-  while (qCount)
+  while (pCoreMdl != NULL)
   {
-    /* Get queue element. */
-    pCoreMdl = (meshAccCoreMdl_t *)WsfQueueDeq(&(meshAccCb.coreMdlQueue));
-
     /* Check if element id matches. */
     /* coverity[dereference] */
     if (pCoreMdl->elemId == elemId)
@@ -1098,10 +1151,8 @@ void MeshAccGetNumCoreModels(uint8_t elemId, uint8_t *pOutNumSig, uint8_t *pOutN
       }
     }
 
-    /* Enqueue back. */
-    WsfQueueEnq(&(meshAccCb.coreMdlQueue), (void *)pCoreMdl);
-
-    qCount--;
+    /* Move to next entry */
+    pCoreMdl = pCoreMdl->pNext;
   }
 }
 
@@ -1120,19 +1171,16 @@ uint8_t MeshAccGetCoreSigModelsIds(uint8_t elemId, meshSigModelId_t *pOutSigMdlI
                                    uint8_t arraySize)
 {
   meshAccCoreMdl_t *pCoreMdl;
-  uint16_t qCount = 0;
   uint8_t cnt = 0;
 
   WSF_ASSERT(pOutSigMdlIdArray != NULL);
 
-  /* Get Core Model queue count. */
-  qCount = WsfQueueCount(&(meshAccCb.coreMdlQueue));
+  /* Point to start of the queue. */
+  pCoreMdl = (meshAccCoreMdl_t *)(&(meshAccCb.coreMdlQueue))->pHead;
 
   /* Get queue element. */
-  while (qCount)
+  while (pCoreMdl != NULL)
   {
-    /* Get queue element. */
-    pCoreMdl = (meshAccCoreMdl_t *) WsfQueueDeq(&(meshAccCb.coreMdlQueue));
 
     /* Check if element id matches. */
     /* Note: pCoreMdl cannot be NULL */
@@ -1148,10 +1196,7 @@ uint8_t MeshAccGetCoreSigModelsIds(uint8_t elemId, meshSigModelId_t *pOutSigMdlI
       }
     }
 
-    /* Enqueue back. */
-    WsfQueueEnq(&(meshAccCb.coreMdlQueue), (void *)pCoreMdl);
-
-    qCount--;
+    pCoreMdl = pCoreMdl->pNext;
   }
 
   return cnt;

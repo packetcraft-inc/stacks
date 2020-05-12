@@ -4,16 +4,16 @@
  *
  *  \brief  Mesh Provisioning Server state machine actions.
  *
- *  Copyright (c) 2010-2019 Arm Ltd.
+ *  Copyright (c) 2010-2019 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -70,14 +70,12 @@
 **************************************************************************************************/
 
 /*! ECC keys generated internally */
-#if (!(defined MESH_PRV_SAMPLE_BUILD) || (MESH_PRV_SAMPLE_BUILD == 0))
 static struct prvSrInternalEccKeys_tag
 {
   uint8_t publicX[MESH_SEC_TOOL_ECC_KEY_SIZE];
   uint8_t publicY[MESH_SEC_TOOL_ECC_KEY_SIZE];
   uint8_t private[MESH_SEC_TOOL_ECC_KEY_SIZE];
 } prvSrInternalEccKeys;
-#endif
 
 #if ((defined MESH_PRV_SAMPLE_BUILD) && (MESH_PRV_SAMPLE_BUILD == 1))
 /*! Device Random: 55a2a2bca04cd32ff6f346bd0a0c1a3a */
@@ -94,25 +92,6 @@ static uint16_t sampleCapabOutputOobAction = 0;
 static uint8_t sampleCapabInputOobSize = 0;
 static uint16_t sampleCapabInputOobAction = 0;
 #endif
-
-#if (((defined MESH_PRV_SAMPLE_BUILD) && (MESH_PRV_SAMPLE_BUILD == 1)) || ((defined MESH_ENABLE_TEST) && (MESH_ENABLE_TEST == 1)))
-
-/*! Public Key X: f465e43ff23d3f1b9dc7dfc04da8758184dbc966204796eccf0d6cf5e16500cc */
-static uint8_t samplePublicKeyX[MESH_SEC_TOOL_ECC_KEY_SIZE] = {
-  0xf4,0x65,0xe4,0x3f,0xf2,0x3d,0x3f,0x1b,0x9d,0xc7,0xdf,0xc0,0x4d,0xa8,0x75,0x81,
-  0x84,0xdb,0xc9,0x66,0x20,0x47,0x96,0xec,0xcf,0x0d,0x6c,0xf5,0xe1,0x65,0x00,0xcc };
-
-/*! Public Key Y: 0201d048bcbbd899eeefc424164e33c201c2b010ca6b4d43a8a155cad8ecb279 */
-static uint8_t samplePublicKeyY[MESH_SEC_TOOL_ECC_KEY_SIZE] = {
-  0x02,0x01,0xd0,0x48,0xbc,0xbb,0xd8,0x99,0xee,0xef,0xc4,0x24,0x16,0x4e,0x33,0xc2,
-  0x01,0xc2,0xb0,0x10,0xca,0x6b,0x4d,0x43,0xa8,0xa1,0x55,0xca,0xd8,0xec,0xb2,0x79 };
-
-/*! Private Key: 529aa0670d72cd6497502ed473502b037e8803b5c60829a5a3caa219505530ba */
-static uint8_t samplePrivateKey[MESH_SEC_TOOL_ECC_KEY_SIZE] = {
-  0x52,0x9a,0xa0,0x67,0x0d,0x72,0xcd,0x64,0x97,0x50,0x2e,0xd4,0x73,0x50,0x2b,0x03,
-  0x7e,0x88,0x03,0xb5,0xc6,0x08,0x29,0xa5,0xa3,0xca,0xa2,0x19,0x50,0x55,0x30,0xba };
-
-#endif /* MESH_PRV_SAMPLE_BUILD or MESH_PRV_QUALIFICATION_TEST_BUILD */
 
 /**************************************************************************************************
   Local Functions
@@ -306,7 +285,6 @@ static void meshPrvSrK1Cback(const uint8_t *pResult, uint8_t resultSize, void *p
  *  \return    None.
  */
 /*************************************************************************************************/
-#if (!(defined MESH_PRV_SAMPLE_BUILD) || (MESH_PRV_SAMPLE_BUILD == 0))
 static void meshPrvSrSecToolEccKeyGenCback(const uint8_t *pPubX,
                                            const uint8_t *pPubY,
                                            const uint8_t *pPriv)
@@ -327,7 +305,6 @@ static void meshPrvSrSecToolEccKeyGenCback(const uint8_t *pPubX,
   }
   /* Else provisioning will fail on timeout - this should not happen if buffers are properly configured. */
 }
-#endif
 
 /*************************************************************************************************/
 /*!
@@ -814,6 +791,9 @@ void meshPrvSrActWaitPublicKey(void *pCcb, void *pMsg)
     return;
   }
 
+  /* Mark peer confirmation as not received */
+  pSr->pSessionData->authParams.peerConfirmationReceived = FALSE;
+
   /* Copy packed parameters to the ConfirmationInputs */
   memcpy(&pSr->pSessionData->authParams.confirmationInputs[MESH_PRV_PDU_INVITE_PARAM_SIZE +
                                                            MESH_PRV_PDU_CAPAB_PARAM_SIZE],
@@ -831,8 +811,25 @@ void meshPrvSrActWaitPublicKey(void *pCcb, void *pMsg)
     pSr->pSessionData->startParams.authSize = MESH_PRV_MAX_OOB_SIZE;
   }
 
-  /* Start transaction timer while waiting for a PDU */
-  WsfTimerStartMs(&pSr->timer, MESH_PRV_TRAN_TIMEOUT_MS);
+  /* Check for invalid state */
+  if ((pStart->oobPubKeyUsed == TRUE) && (pSr->pUpdInfo->pAppOobEccKeys == NULL))
+  {
+    meshPrvSrSmMsg_t *pNewMsg;
+
+    pNewMsg = WsfMsgAlloc(sizeof (meshPrvSrSmMsg_t));
+
+    if (pMsg != NULL)
+    {
+      pNewMsg->hdr.event = PRV_SR_EVT_RECV_BAD_PDU;
+      pNewMsg->hdr.param = MESH_PRV_ERR_INVALID_FORMAT;
+        WsfMsgSend(meshPrvSrCb.timer.handlerId, pNewMsg);
+    }
+  }
+  else
+  {
+    /* Start transaction timer while waiting for a PDU */
+    WsfTimerStartMs(&pSr->timer, MESH_PRV_TRAN_TIMEOUT_MS);
+  }
 }
 
 /*************************************************************************************************/
@@ -871,22 +868,7 @@ void meshPrvSrActGeneratePublicKey(void *pCcb, void *pMsg)
 
   MESH_TRACE_INFO0("MESH PRV SR: [ACT] Generate own Public Key.");
 
-#if ((defined MESH_PRV_SAMPLE_BUILD) && (MESH_PRV_SAMPLE_BUILD == 1))
-  MESH_TRACE_INFO0("MESH PRV SR: Using ECC keys from the sample data.");
-
-  pSr->pSessionData->eccKeys.pPubKeyX = samplePublicKeyX;
-  pSr->pSessionData->eccKeys.pPubKeyY = samplePublicKeyY;
-  pSr->pSessionData->eccKeys.pPrivateKey = samplePrivateKey;
-
-  wsfMsgHdr_t* pEvtMsg = WsfMsgAlloc(sizeof(wsfMsgHdr_t));
-  if (pEvtMsg != NULL)
-  {
-    pEvtMsg->event = PRV_SR_EVT_PUBLIC_KEY_GENERATED;
-    WsfMsgSend(pSr->timer.handlerId, pEvtMsg);
-  }
-#else
-
-  if (pSr->pUpdInfo->pAppEccKeys == NULL)
+  if (pSr->pUpdInfo->pAppOobEccKeys == NULL)
     /* Application has not provided ECC keys */
   {
     /* Use the ECC keys generated by the stack */
@@ -901,7 +883,7 @@ void meshPrvSrActGeneratePublicKey(void *pCcb, void *pMsg)
     /* Application has provided ECC keys */
   {
     /* Use the ECC keys provided by the application */
-    memcpy(&pSr->pSessionData->eccKeys, pSr->pUpdInfo->pAppEccKeys, sizeof(meshPrvEccKeys_t));
+    memcpy(&pSr->pSessionData->eccKeys, pSr->pUpdInfo->pAppOobEccKeys, sizeof(meshPrvEccKeys_t));
 
     /* Simulate that the Public Key has been generated */
     MESH_TRACE_INFO0("MESH PRV SR: Public Key provided by the application. Simulating PublicKeyGenerated event...");
@@ -914,8 +896,6 @@ void meshPrvSrActGeneratePublicKey(void *pCcb, void *pMsg)
     }
     /* Else provisioning will fail on timeout - this should not happen if buffers are properly configured. */
   }
-
-#endif  /* MESH_PRV_SAMPLE_BUILD */
 }
 
 /*************************************************************************************************/
@@ -950,14 +930,6 @@ void meshPrvSrActValidatePublicKey(void *pCcb, void *pMsg)
                                                                        MESH_PRV_PDU_START_PARAM_SIZE +
                                                                        MESH_SEC_TOOL_ECC_KEY_SIZE];
   pLocalPriv = meshPrvSrCb.pSessionData->eccKeys.pPrivateKey;
-
-#if ((defined MESH_ENABLE_TEST) && (MESH_ENABLE_TEST == 1))
-  /* For qualification tests with OOB public key, we are using the keys from sample data */
-  if (meshPrvSrCb.pSessionData->startParams.oobPublicKey)
-  {
-    pLocalPriv = samplePrivateKey;
-  }
-  #endif
 
   (void)MeshSecToolEccCompSharedSecret(pPeerPubX, pPeerPubY, pLocalPriv, meshPrvSrEcdhSecretCback);
 }
@@ -1015,15 +987,10 @@ void meshPrvSrActSendPublicKey(void *pCcb, void *pMsg)
     /* Simulate that the Public Key has been delivered */
     MESH_TRACE_INFO0("MESH PRV SR: Public Key available OOB at Client-side. Simulating SentPublicKey event...");
 
-    /* For qualification testing, use the sample public key as OOB Public Key */
     uint8_t *pPubKeyX, *pPubKeyY;
-#if ((defined MESH_ENABLE_TEST) && (MESH_ENABLE_TEST==1))
-    pPubKeyX = samplePublicKeyX;
-    pPubKeyY = samplePublicKeyY;
-#else
+
     pPubKeyX = pSr->pSessionData->eccKeys.pPubKeyX;
     pPubKeyY = pSr->pSessionData->eccKeys.pPubKeyY;
-#endif
 
     /* Copy own public key to the ConfirmationInputs */
     memcpy(&pSr->pSessionData->authParams.confirmationInputs[MESH_PRV_PDU_INVITE_PARAM_SIZE +
@@ -1161,7 +1128,14 @@ void meshPrvSrActPrepareOobAction(void *pCcb, void *pMsg)
       pEvtMsg = WsfMsgAlloc(sizeof(wsfMsgHdr_t));
       if (pEvtMsg != NULL)
       {
-        pEvtMsg->event = PRV_SR_EVT_GOTO_CONFIRMATION;
+        if (pSr->pSessionData->authParams.peerConfirmationReceived == TRUE)
+        {
+          pEvtMsg->event = PRV_SR_EVT_RECV_CONFIRMATION;
+        }
+        else
+        {
+          pEvtMsg->event = PRV_SR_EVT_GOTO_CONFIRMATION;
+        }
         WsfMsgSend(pSr->timer.handlerId, pEvtMsg);
       }
       /* Else provisioning will fail on timeout - this should not happen if buffers are properly configured. */
@@ -1178,7 +1152,14 @@ void meshPrvSrActPrepareOobAction(void *pCcb, void *pMsg)
       pEvtMsg = WsfMsgAlloc(sizeof(wsfMsgHdr_t));
       if (pEvtMsg != NULL)
       {
-        pEvtMsg->event = PRV_SR_EVT_GOTO_CONFIRMATION;
+        if (pSr->pSessionData->authParams.peerConfirmationReceived == TRUE)
+        {
+          pEvtMsg->event = PRV_SR_EVT_RECV_CONFIRMATION;
+        }
+        else
+        {
+          pEvtMsg->event = PRV_SR_EVT_GOTO_CONFIRMATION;
+        }
         WsfMsgSend(pSr->timer.handlerId, pEvtMsg);
       }
       /* Else provisioning will fail on timeout - this should not happen if buffers are properly configured. */
@@ -1284,6 +1265,44 @@ void meshPrvSrActWaitConfirmation(void *pCcb, void *pMsg)
 
 /*************************************************************************************************/
 /*!
+ *  \brief     Store Peer the provisioning confirmation.
+ *
+ *  \param[in] pCcb  Control block.
+ *  \param[in] pMsg  State machine message.
+ *
+ *  \return    None.
+ */
+/*************************************************************************************************/
+void meshPrvSrActSaveConfirmation(void *pCcb, void *pMsg)
+{
+  meshPrvSrCb_t* pSr = (meshPrvSrCb_t*)pCcb;
+  meshPrvSrRecvConfirm_t* pConfirm = (meshPrvSrRecvConfirm_t*)pMsg;
+  wsfMsgHdr_t evtMsg;
+  MESH_TRACE_INFO0("MESH PRV SR: [ACT] Save peer provisioning confirmation value.");
+
+  /* Check session data is allocated */
+  if (pSr->pSessionData == NULL)
+  {
+    MESH_TRACE_ERR0("MESH PRV SR: Session data not allocated during PRV SR SM action!");
+    return;
+  }
+
+  /* Save peer Confirmation */
+  memcpy(pSr->pSessionData->authParams.peerConfirmation, pConfirm->confirm, MESH_PRV_PDU_CONFIRM_CONFIRM_SIZE);
+  pSr->pSessionData->authParams.peerConfirmationReceived = TRUE;
+
+  /* Notify upper layer to stop outputting OOB data, if applicable */
+  if (pSr->pSessionData->startParams.authMethod == MESH_PRV_START_AUTH_METHOD_OUTPUT_OOB)
+  {
+    evtMsg.event = MESH_PRV_SR_EVENT;
+    evtMsg.param = MESH_PRV_SR_OUTPUT_CONFIRMED_EVENT;
+    evtMsg.status = MESH_SUCCESS;
+    pSr->prvSrEvtNotifyCback((meshPrvSrEvt_t*)&evtMsg);
+  }
+}
+
+/*************************************************************************************************/
+/*!
  *  \brief     Calculate the provisioning confirmation.
  *
  *  \param[in] pCcb  Control block.
@@ -1295,8 +1314,6 @@ void meshPrvSrActWaitConfirmation(void *pCcb, void *pMsg)
 void meshPrvSrActCalcConfirmation(void *pCcb, void *pMsg)
 {
   meshPrvSrCb_t* pSr = (meshPrvSrCb_t*)pCcb;
-  meshPrvSrRecvConfirm_t* pConfirm = (meshPrvSrRecvConfirm_t*)pMsg;
-  wsfMsgHdr_t evtMsg;
   MESH_TRACE_INFO0("MESH PRV SR: [ACT] Calculate own provisioning confirmation value.");
 
   /* Check session data is allocated */
@@ -1310,17 +1327,10 @@ void meshPrvSrActCalcConfirmation(void *pCcb, void *pMsg)
   WsfTimerStop(&pSr->timer);
 
   /* Save peer Confirmation */
-  memcpy(pSr->pSessionData->authParams.peerConfirmation, pConfirm->confirm, MESH_PRV_PDU_CONFIRM_CONFIRM_SIZE);
-
-  /* Notify upper layer to stop outputting OOB data, if applicable */
-  if (pSr->pSessionData->startParams.authMethod == MESH_PRV_START_AUTH_METHOD_OUTPUT_OOB)
+  if (pSr->pSessionData->authParams.peerConfirmationReceived == FALSE)
   {
-    evtMsg.event = MESH_PRV_SR_EVENT;
-    evtMsg.param = MESH_PRV_SR_OUTPUT_CONFIRMED_EVENT;
-    evtMsg.status = MESH_SUCCESS;
-    pSr->prvSrEvtNotifyCback((meshPrvSrEvt_t*)&evtMsg);
+      meshPrvSrActSaveConfirmation(pCcb, pMsg);
   }
-
 
   /* Calculate ConfirmationSalt = s1(ConfirmationInputs) */
   (void)MeshSecToolGenerateSalt(pSr->pSessionData->authParams.confirmationInputs,

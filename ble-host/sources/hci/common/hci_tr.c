@@ -4,16 +4,16 @@
  *
  *  \brief  HCI transport module.
  *
- *  Copyright (c) 2011-2018 Arm Ltd.
+ *  Copyright (c) 2011-2018 Arm Ltd. All Rights Reserved.
  *
  *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,7 +29,10 @@
 #include "hci_api.h"
 #include "hci_core.h"
 #include "hci_tr.h"
+
+#if defined(HCI_TR_EXACTLE) && (HCI_TR_EXACTLE == 1)
 #include "ll_api.h"
+#endif
 
 /*************************************************************************************************/
 /*!
@@ -61,19 +64,37 @@ void hciTrSendAclData(void *pContext, uint8_t *pData)
       /* copy data */
       memcpy(p, pData, len);
 
+#if defined(HCI_TR_EXACTLE) && (HCI_TR_EXACTLE == 1)
       /* send to LL  */
       LlSendAclData(p);
 
       /* free HCI buffer */
       hciCoreTxAclComplete(pContext, pData);
+#endif
     }
   }
   else
   {
-    /* send to LL  */
-    LlSendAclData(pData);
+#if defined(HCI_TR_EXACTLE) && (HCI_TR_EXACTLE == 1)
+	    /* send to LL  */
+	    LlSendAclData(pData);
 
-    /* LL will free HCI buffer */
-    hciCoreTxAclComplete(pContext, NULL);
+	    /* LL will free HCI buffer */
+	    hciCoreTxAclComplete(pContext, NULL);
+#endif
   }
+}
+
+/*************************************************************************************************/
+/*!
+ *  \brief  Send a complete HCI command to the transport.
+ *
+ *  \param  pCmdData    WSF msg buffer containing an HCI command.
+ *
+ *  \return None.
+ */
+/*************************************************************************************************/
+void hciTrSendCmd(uint8_t *pCmdData)
+{
+
 }

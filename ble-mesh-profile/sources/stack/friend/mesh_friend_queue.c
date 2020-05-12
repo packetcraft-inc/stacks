@@ -4,16 +4,16 @@
  *
  *  \brief  Mesh Friend Queue implementation.
  *
- *  Copyright (c) 2010-2019 Arm Ltd.
+ *  Copyright (c) 2010-2019 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -86,7 +86,7 @@
  *  \param[in] dst      Destination address.
  *  \param[in] seqZero  SeqZero field of the new ACK.
  *
- *  \return    TRUE if entry discarded, or FALSE if all messages are Friend Updates.
+ *  \return    None
  */
 /*************************************************************************************************/
 static void meshFriendQueuePrepNewAckAdd(meshFriendLpnCtx_t *pCtx, uint32_t ivIndex,
@@ -95,17 +95,14 @@ static void meshFriendQueuePrepNewAckAdd(meshFriendLpnCtx_t *pCtx, uint32_t ivIn
 {
   meshFriendQueueEntry_t *pEntry, *pPrev, *pNext;
   uint16_t localSeqZero;
-  uint8_t qCnt;
 
   /* Set previous to NULL. */
   pPrev = NULL;
   /* Point to start of the queue. */
   pEntry = (meshFriendQueueEntry_t *)(&(pCtx->pduQueue))->pHead;
-  /* Get queue count. */
-  qCnt = (uint8_t)WsfQueueCount((&(pCtx->pduQueue)));
 
   /* Find all entries which have ACK PDU flag and same addressing information. */
-  while(qCnt > 0)
+  while(pEntry != NULL)
   {
     pNext = (meshFriendQueueEntry_t *)(pEntry->pNext);
     /* Check for ACK PDU's with same source and destination. */
@@ -130,19 +127,14 @@ static void meshFriendQueuePrepNewAckAdd(meshFriendLpnCtx_t *pCtx, uint32_t ivIn
 
           /* Increment free count. */
           pCtx->pduQueueFreeCount++;
+        }
 
-          return;
-        }
-        else
-        {
-          return;
-        }
+        break;
       }
     }
 
     pPrev = pEntry;
     pEntry = pNext;
-    qCnt--;
   }
 }
 
@@ -219,6 +211,52 @@ static meshFriendQueueEntry_t *meshFriendQueueAlloc(meshFriendLpnCtx_t *pCtx)
   }
 
   return NULL;
+}
+
+/*************************************************************************************************/
+/*!
+ *  \brief     If the Friend Queue already contains a message with the same SEQ and SRC fields as
+ *             in the received message, or if the SRC field of the received message is a unicast
+ *             address of an element of the Low Power node, then the message shall not be stored
+ *             in the Friend Queue.
+ *
+ *  \param[in] pCtx     Pointer to LPN context.
+ *  \param[in] seqNo    Sequence Number of the received PDU.
+ *  \param[in] src      Source address.
+ *
+ *  \return    TRUE if duplicate PDU was found. Else FALSE.
+ */
+/*************************************************************************************************/
+static bool_t meshFriendQueueCheckForDuplicatePdu(meshFriendLpnCtx_t *pCtx, meshSeqNumber_t seqNo,
+                                                  meshAddress_t src)
+{
+  meshFriendQueueEntry_t *pEntry;
+  bool_t status = FALSE;
+
+  /* Check if the src address is a unicast address of an element of the Low Power node */
+  if (MESH_IS_ADDR_UNICAST(src) && (src >= pCtx->lpnAddr) &&
+      (src < (pCtx->lpnAddr + pCtx->estabInfo.numElements)))
+  {
+    status = TRUE;
+  }
+  else
+  {
+    /* Point to start of the queue. */
+    pEntry = (meshFriendQueueEntry_t *)(&(pCtx->pduQueue))->pHead;
+
+    /* Iterate through queue. */
+    while (pEntry != NULL)
+    {
+      /* Check for duplicate PDU. */
+      if ((pEntry->seqNo == seqNo) && (pEntry->src == src))
+      {
+        status = TRUE;
+        break;
+      }
+      pEntry = pEntry->pNext;
+    }
+  }
+  return status;
 }
 
 /*************************************************************************************************/
@@ -354,46 +392,50 @@ void meshFriendQueueAddPdu(meshFriendLpnCtx_t *pCtx, uint8_t ctl, uint8_t ttl, u
     return;
   }
 
-  /* Configure entry. */
-  pEntry->src = src;
-  pEntry->dst = dst;
-  pEntry->seqNo = seqNo;
-  pEntry->ivIndex = ivIndex;
-  pEntry->ctl = ctl;
-  pEntry->ttl = ttl;
-
-  /* Point to the start of the PDU. */
-  pPdu = pEntry->ltrPdu;
-
-  /* Copy LTR header. */
-  if (MESH_UTILS_BF_GET(pLtrHdr[0], MESH_SEG_SHIFT, MESH_SEG_SIZE))
+  /* Erata 11302: Check if PDU should be added to Friend queue */
+  if (meshFriendQueueCheckForDuplicatePdu(pCtx, seqNo, src) == FALSE)
   {
-    memcpy(pPdu, pLtrHdr, MESH_SEG_HEADER_LENGTH);
-    pPdu += MESH_SEG_HEADER_LENGTH;
-  }
-  else
-  {
-    *(pPdu)++ = pLtrHdr[0];
-  }
+    /* Configure entry. */
+    pEntry->src = src;
+    pEntry->dst = dst;
+    pEntry->seqNo = seqNo;
+    pEntry->ivIndex = ivIndex;
+    pEntry->ctl = ctl;
+    pEntry->ttl = ttl;
 
-  /* Copy remaining bytes. */
-  memcpy(pPdu, pLtrUtrPdu, pduLen);
+    /* Point to the start of the PDU. */
+    pPdu = pEntry->ltrPdu;
 
-  /* Compute length. */
-  pEntry->ltrPduLen = (uint8_t)((pPdu - &(pEntry->ltrPdu[0])) + pduLen);
+    /* Copy LTR header. */
+    if (MESH_UTILS_BF_GET(pLtrHdr[0], MESH_SEG_SHIFT, MESH_SEG_SIZE))
+    {
+      memcpy(pPdu, pLtrHdr, MESH_SEG_HEADER_LENGTH);
+      pPdu += MESH_SEG_HEADER_LENGTH;
+    }
+    else
+    {
+      *(pPdu)++ = pLtrHdr[0];
+    }
 
-  /* Set flags. */
-  if (FRIEND_QUEUE_PDU_IS_ACK(pEntry))
-  {
-    pEntry->flags = FRIEND_QUEUE_FLAG_ACK_PDU;
+    /* Copy remaining bytes. */
+    memcpy(pPdu, pLtrUtrPdu, pduLen);
+
+    /* Compute length. */
+    pEntry->ltrPduLen = (uint8_t)((pPdu - &(pEntry->ltrPdu[0])) + pduLen);
+
+    /* Set flags. */
+    if (FRIEND_QUEUE_PDU_IS_ACK(pEntry))
+    {
+      pEntry->flags = FRIEND_QUEUE_FLAG_ACK_PDU;
+    }
+    else
+    {
+      pEntry->flags = FRIEND_QUEUE_FLAG_DATA_PDU;
+    }
+
+    /* Enqueue. */
+    WsfQueueEnq(&(pCtx->pduQueue), pEntry);
   }
-  else
-  {
-    pEntry->flags = FRIEND_QUEUE_FLAG_DATA_PDU;
-  }
-
-  /* Enqueue. */
-  WsfQueueEnq(&(pCtx->pduQueue), pEntry);
 }
 
 /*************************************************************************************************/

@@ -4,16 +4,16 @@
  *
  *  \brief  Generic Power Level Server Model API.
  *
- *  Copyright (c) 2010-2018 Arm Ltd.
+ *  Copyright (c) 2010-2018 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -73,6 +73,8 @@ typedef struct mmdlGenPowerLevelSrStateUpdate_tag
   meshElementId_t                   elemId;            /*!< Element identifier */
   mmdlStateUpdateSrc_t              stateUpdateSource; /*!< Updated state source */
   mmdlGenPowerLevelState_t          state;             /*!< Updated state */
+  uint32_t                          transitionMs;      /*!< Transition Time in millisecond steps */
+  uint8_t                           delay5Ms;          /*!< Message execution delay in 5 ms steps */
 } mmdlGenPowerLevelSrStateUpdate_t;
 
 /*! \brief Generic Power Level Server Model Current State event structure */
@@ -83,16 +85,32 @@ typedef struct mmdlGenPowerLevelSrCurrentState_tag
   mmdlGenLevelState_t               state;             /*!< Updated state */
 } mmdlGenPowerLevelSrCurrentState_t;
 
+/*! \brief Generic Power Range Server Model State event structure */
+typedef struct mmdlGenPowerLevelSrRangeState_tag
+{
+  wsfMsgHdr_t                       hdr;               /*!< WSF message header */
+  meshElementId_t                   elemId;            /*!< Element identifier */
+  mmdlGenLevelState_t               minState;          /*!< Minimum state */
+  mmdlGenLevelState_t               maxState;          /*!< Maximum state */
+} mmdlGenPowerLevelSrRangeState_t;
+
 /*! \brief Generic Power Level Server Model event callback parameters structure */
 typedef union mmdlGenPowerLevelSrEvent_tag
 {
   wsfMsgHdr_t                       hdr;               /*!< WSF message header */
   mmdlGenPowerLevelSrStateUpdate_t  statusEvent;       /*!< State updated event. Used for
-                                                        *   ::MMDL_GEN_POWER_LEVEL_SR_STATE_UPDATE_EVENT.
+                                                        *   ::MMDL_GEN_POWER_LEVEL_SR_STATE_UPDATE_EVENT
                                                         */
   mmdlGenPowerLevelSrCurrentState_t currentStateEvent; /*!< Current state event. Sent after a Get request
                                                         *   from the upper layer. Used for
-                                                        *   ::MMDL_GEN_POWER_LEVEL_SR_CURRENT_STATE_EVENT.
+                                                        *   ::MMDL_GEN_POWER_LEVEL_SR_CURRENT_STATE_EVENT,
+                                                        *   MMDL_GEN_POWER_LAST_SR_CURRENT_STATE_EVENT,
+                                                        *   MMDL_GEN_POWER_DEFAULT_SR_CURRENT_STATE_EVENT,
+                                                        *   MMDL_GEN_POWER_RANGE_SR_CURRENT_EVENT,
+                                                        *   MMDL_GEN_POWER_DEFAULT_SR_STATE_UPDATE_EVENT
+                                                        */
+  mmdlGenPowerLevelSrRangeState_t   rangeStatusEvent;  /*!< State updated event. Used for
+                                                        *   ::MMDL_GEN_POWER_RANGE_SR_STATE_UPDATE_EVENT,
                                                         */
 } mmdlGenPowerLevelSrEvent_t;
 
@@ -117,6 +135,8 @@ typedef struct mmdlGenPowerLevelSrDesc_tag
                                                    *   replaced with the target state. If set to 0,
                                                    *   the target state is ignored. Unit is 1 ms.
                                                    */
+  int16_t                   transitionStep;       /*!< Transition state update step */
+  uint16_t                  steps;                /*!< The number of transition steps */
   uint8_t                   delay5Ms;             /*!< Delay until the transition to the new state
                                                    *   begins. Unit is 5 ms.
                                                    */

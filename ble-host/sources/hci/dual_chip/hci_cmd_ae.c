@@ -4,16 +4,16 @@
  *
  *  \brief  HCI Advertising Extensions (AE) command module.
  *
- *  Copyright (c) 2016-2018 Arm Ltd.
+ *  Copyright (c) 2016-2018 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -85,7 +85,7 @@ void HciLeSetExtAdvParamCmd(uint8_t advHandle, hciExtAdvParam_t *pExtAdvParam)
     UINT8_TO_BSTREAM(p, pExtAdvParam->priAdvPhy);
     UINT8_TO_BSTREAM(p, pExtAdvParam->secAdvMaxSkip);
     UINT8_TO_BSTREAM(p, pExtAdvParam->secAdvPhy);
-    UINT8_TO_BSTREAM(p, pExtAdvParam->advSetId);
+    UINT8_TO_BSTREAM(p, pExtAdvParam->advSID);
     UINT8_TO_BSTREAM(p, pExtAdvParam->scanReqNotifEna);
     hciCmdSend(pBuf);
   }

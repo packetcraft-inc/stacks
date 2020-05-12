@@ -4,16 +4,14 @@
  *
  *  \brief      LED driver definition.
  *
- *  Copyright (c) 2018 ARM Ltd.
- *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -39,12 +37,12 @@ extern "C" {
 **************************************************************************************************/
 
 /*! \brief      Reserved LED IDs. */
-typedef enum
+enum
 {
-  /* Common debug signals. */
-  PAL_LED_ID_CPU_ACTIVE     = 0x18,  /*!< CPU active LED ID. */
-  PAL_LED_ID_ERROR          = 0x19,  /*!< Error LED ID. */
-} PalLedId_t;
+  /* System signals. */
+  PAL_LED_ID_CPU_ACTIVE     = 0x30,  /*!< CPU active LED ID. */
+  PAL_LED_ID_ERROR          = 0x31,  /*!< Error LED ID. */
+};
 
 /**************************************************************************************************
   Function Declarations
@@ -57,8 +55,6 @@ void PalLedDeInit(void);
 /* Control and Status */
 void PalLedOn(uint8_t id);
 void PalLedOff(uint8_t id);
-void PalLedOnGroup(uint32_t mask);
-void PalLedOffGroup(uint32_t mask);
 
 /*! \} */    /* PAL_LED */
 

@@ -4,16 +4,16 @@
  *
  *  \brief  ATT server signed PDU processing functions.
  *
- *  Copyright (c) 2011-2019 Arm Ltd.
+ *  Copyright (c) 2011-2019 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -127,10 +127,14 @@ static void attsSignedWriteStart(attsSignCcb_t *pCcb, attsSignBuf_t *pBuf)
       WsfBufFree(pCmacTxt);
     }
   }
+  else
+  {
+    /* no CSRK */
+    ATT_TRACE_WARN0("ATTS CSRK not set");
+  }
 
-  /* no CSRK-- free buffer */
+  /* free buffer */
   WsfBufFree(pBuf);
-  ATT_TRACE_WARN0("ATTS CSRK not set");
 }
 
 /*************************************************************************************************/
@@ -144,7 +148,7 @@ static void attsSignedWriteStart(attsSignCcb_t *pCcb, attsSignBuf_t *pBuf)
  *  \return None.
  */
 /*************************************************************************************************/
-static void attsProcSignedWrite(attCcb_t *pCcb, uint16_t len, uint8_t *pPacket)
+static void attsProcSignedWrite(attsCcb_t *pCcb, uint16_t len, uint8_t *pPacket)
 {
   uint8_t       *p;
   attsAttr_t    *pAttr;
@@ -190,7 +194,7 @@ static void attsProcSignedWrite(attCcb_t *pCcb, uint16_t len, uint8_t *pPacket)
       if ((pBuf = WsfBufAlloc(sizeof(attsSignBuf_t) - 1 + len)) != NULL)
       {
         /* initialize buffer */
-        pBuf->pCcb = pCcb;
+        pBuf->pCcb = pCcb->pMainCcb;
         pBuf->handle = handle;
         pBuf->writeLen = writeLen;
         pBuf->connId = pCcb->connId;
@@ -232,7 +236,7 @@ static void attsSignMsgCback(secCmacMsg_t *pMsg)
   uint32_t      signCounter;
 
   if (pMsg->hdr.event == ATTS_MSG_SIGN_CMAC_CMPL)
-  {
+  { 
     uint8_t signature[ATT_CMAC_RESULT_LEN] = {0};
 
     pCcb = attsSignCcbByConnId((dmConnId_t) pMsg->hdr.param);

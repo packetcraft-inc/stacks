@@ -121,14 +121,14 @@ Dummy_Handler:
 .weak RADIO_IRQHandler
 .thumb_set RADIO_IRQHandler, Dummy_Handler
 
-.weak UARTE0_IRQHandler
-.thumb_set UARTE0_IRQHandler, Dummy_Handler
+.weak UARTE0_UART0_IRQHandler
+.thumb_set UARTE0_UART0_IRQHandler, Dummy_Handler
 
-.weak TWIM0_TWIS0_IRQHandler
-.thumb_set TWIM0_TWIS0_IRQHandler, Dummy_Handler
+.weak TWIM0_TWIS0_TWI0_IRQHandler
+.thumb_set TWIM0_TWIS0_TWI0_IRQHandler, Dummy_Handler
 
-.weak SPIM0_SPIS0_IRQHandler
-.thumb_set SPIM0_SPIS0_IRQHandler, Dummy_Handler
+.weak SPIM0_SPIS0_SPI0_IRQHandler
+.thumb_set SPIM0_SPIS0_SPI0_IRQHandler, Dummy_Handler
 
 .weak GPIOTE_IRQHandler
 .thumb_set GPIOTE_IRQHandler, Dummy_Handler
@@ -202,10 +202,34 @@ Dummy_Handler:
 
   .extern Reset_Handler
   .global nRFInitialize
+  .extern afterInitialize
 
   .thumb_func
 nRFInitialize:
-  bx lr
+  /* Workaround for Errata 185 RAM: RAM corruption at extreme corners 
+   * found at the Errata document for your device located
+   * at https://infocenter.nordicsemi.com/index.jsp */
+  
+  LDR     R0, =0x10000130
+  LDR     R0, [R0]
+  LDR     R1, =0x10000134
+  LDR     R1, [R1]
+  
+  CMP     R0, #0xA
+  BNE     skip
+  CMP     R1, #0x0
+  BNE     skip
+  
+  LDR     R0, =0x40000EE4
+  LDR     R2, [R0]
+  LDR     R3, =0xFFFFFF8F
+  ANDS    R2, R2, R3
+  LDR     R3, =0x00000040
+  ORRS    R2, R2, R3
+  STR     R2, [R0]
+  
+skip:
+  b afterInitialize
  
  
 /************************************************************************************
@@ -238,9 +262,9 @@ _vectors:
 /* External Interrupts */
   .word   POWER_CLOCK_IRQHandler
   .word   RADIO_IRQHandler
-  .word   UARTE0_IRQHandler
-  .word   TWIM0_TWIS0_IRQHandler
-  .word   SPIM0_SPIS0_IRQHandler
+  .word   UARTE0_UART0_IRQHandler
+  .word   TWIM0_TWIS0_TWI0_IRQHandler
+  .word   SPIM0_SPIS0_SPI0_IRQHandler
   .word   0                           /*Reserved */
   .word   GPIOTE_IRQHandler
   .word   SAADC_IRQHandler

@@ -1,7 +1,7 @@
 /**
- * Copyright (c) 2015 - 2018, Nordic Semiconductor ASA
+ * Copyright (c) 2015 - 2019, Nordic Semiconductor ASA
  *
- *
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -42,7 +42,6 @@
 #define NRF_DRV_UART_H__
 
 #include <nrfx.h>
-#include <sdk_errors.h>
 
 #if defined(UARTE_PRESENT) && NRFX_CHECK(NRFX_UARTE_ENABLED)
     #define NRF_DRV_UART_WITH_UARTE
@@ -84,7 +83,6 @@
         .uart = { .p_reg = NULL },
 
 #else
-#include <nrf_uarte.h>
     // Compilers (at least the smart ones) will remove the UART related code
     // (blocks starting with "if (NRF_DRV_UART_USE_UART)") when it is not used,
     // but to perform the compilation they need the following definitions.

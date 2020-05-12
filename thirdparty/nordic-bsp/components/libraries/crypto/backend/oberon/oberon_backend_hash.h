@@ -1,7 +1,7 @@
 /**
- * Copyright (c) 2018, Nordic Semiconductor ASA
+ * Copyright (c) 2018 - 2019, Nordic Semiconductor ASA
  *
- *
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -55,8 +55,8 @@
 
 #include "sdk_errors.h"
 #include "nrf_crypto_hash_shared.h"
-#include "occ_sha256.h"
-#include "occ_sha512.h"
+#include "ocrypto_sha256.h"
+#include "ocrypto_sha512.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -81,7 +81,7 @@ extern "C" {
 typedef struct
 {
     nrf_crypto_hash_internal_context_t  header;     /**< Common header for context. */
-    occ_sha256_ctx                      context;    /**< Hash context internal to Oberon. */
+    ocrypto_sha256_ctx                  context;    /**< Hash context internal to Oberon. */
 } nrf_crypto_backend_hash_sha256_context_t;
 
 
@@ -106,7 +106,7 @@ typedef struct
 typedef struct
 {
     nrf_crypto_hash_internal_context_t  header;     /**< Common header for context. */
-    occ_sha512_ctx                      context;    /**< Hash context internal to Oberon. */
+    ocrypto_sha512_ctx                  context;    /**< Hash context internal to Oberon. */
 } nrf_crypto_backend_hash_sha512_context_t;
 
 

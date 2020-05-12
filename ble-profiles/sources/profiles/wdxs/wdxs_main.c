@@ -4,16 +4,16 @@
  *
  *  \brief  Wireless Data Exchange profile implementation.
  *
- *  Copyright (c) 2013-2018 Arm Ltd.
+ *  Copyright (c) 2013-2018 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -57,9 +57,9 @@ wdxsCb_t wdxsCb;
 /**************************************************************************************************
   Local Function Prototypes
 **************************************************************************************************/
-static uint8_t WdxsRamErase(uint32_t address, uint32_t size);
-static uint8_t WdxsRamRead(uint8_t *pBuf, uint32_t address, uint32_t size);
-static uint8_t WdxsRamWrite(const uint8_t *pBuf, uint32_t address, uint32_t size);
+static uint8_t WdxsRamErase(uint8_t *pAddress, uint32_t size);
+static uint8_t WdxsRamRead(uint8_t *pBuf, uint8_t *pAddress, uint32_t size);
+static uint8_t WdxsRamWrite(const uint8_t *pBuf, uint8_t *pAddress, uint32_t size);
 
 /**************************************************************************************************
   Function Prototypes
@@ -74,10 +74,10 @@ void WdxsAuSecComplete(secAes_t *pAes);
 static uint8_t WdxsRamBlock[WDXS_RAM_SIZE];
 
 /*! EFS RAM Media Control Block */
-static const wsfEfsMedia_t WDXS_RamMediaCtrl =
+static wsfEfsMedia_t WDXS_RamMediaCtrl =
 {
-  WDXS_RAM_LOCATION,
-  WDXS_RAM_LOCATION + WDXS_RAM_SIZE,
+  0,
+  0,
   1,
   NULL,
   WdxsRamErase,
@@ -94,10 +94,9 @@ static const wsfEfsMedia_t WDXS_RamMediaCtrl =
  *
  */
 /*************************************************************************************************/
-static uint8_t WdxsRamErase(uint32_t address, uint32_t size)
+static uint8_t WdxsRamErase(uint8_t *pAddress, uint32_t size)
 {
-  uint8_t *pMem = (uint8_t *) address;
-  memset(pMem, 0xFF, size);
+  memset(pAddress, 0xFF, size);
   return TRUE;
 }
 
@@ -109,10 +108,9 @@ static uint8_t WdxsRamErase(uint32_t address, uint32_t size)
  *
  */
 /*************************************************************************************************/
-static uint8_t WdxsRamRead(uint8_t *pBuf, uint32_t address, uint32_t size)
+static uint8_t WdxsRamRead(uint8_t *pBuf, uint8_t *pAddress, uint32_t size)
 {
-  uint8_t *pMem = (uint8_t *) address;
-  memcpy(pBuf, pMem, size);
+  memcpy(pBuf, pAddress, size);
   return TRUE;
 }
 
@@ -124,10 +122,9 @@ static uint8_t WdxsRamRead(uint8_t *pBuf, uint32_t address, uint32_t size)
  *
  */
 /*************************************************************************************************/
-static uint8_t WdxsRamWrite(const uint8_t *pBuf, uint32_t address, uint32_t size)
+static uint8_t WdxsRamWrite(const uint8_t *pBuf, uint8_t *pAddress, uint32_t size)
 {
-  uint8_t *pMem = (uint8_t *) address;
-  memcpy(pMem, pBuf, size);
+  memcpy(pAddress, pBuf, size);
   return TRUE;
 }
 
@@ -461,6 +458,10 @@ void WdxsHandlerInit(wsfHandlerId_t handlerId)
   wsfEsfAttributes_t attr;
 
   APP_TRACE_INFO0("WDXS: WdxsHandlerInit");
+
+  /* Initialize the EFS RAM Media Control Block */
+  WDXS_RamMediaCtrl.startAddress = WDXS_RAM_LOCATION;
+  WDXS_RamMediaCtrl.endAddress = WDXS_RAM_LOCATION + WDXS_RAM_SIZE,
 
   /* Initialize the control block */
   memset(&wdxsCb, 0, sizeof(wdxsCb));

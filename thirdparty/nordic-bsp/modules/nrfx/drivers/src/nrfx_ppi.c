@@ -1,7 +1,7 @@
 /**
- * Copyright (c) 2015 - 2018, Nordic Semiconductor ASA
+ * Copyright (c) 2015 - 2019, Nordic Semiconductor ASA
  *
- *
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -319,11 +319,7 @@ nrfx_err_t nrfx_ppi_channel_fork_assign(nrf_ppi_channel_t channel, uint32_t fork
 {
     nrfx_err_t err_code = NRFX_SUCCESS;
 #ifdef PPI_FEATURE_FORKS_PRESENT
-    if (!is_programmable_app_channel(channel))
-    {
-        err_code = NRFX_ERROR_INVALID_PARAM;
-    }
-    else if (!is_allocated_channel(channel))
+    if (!is_allocated_channel(channel))
     {
         err_code = NRFX_ERROR_INVALID_STATE;
     }

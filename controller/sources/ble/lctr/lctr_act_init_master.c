@@ -4,16 +4,16 @@
  *
  *  \brief  Link layer controller master connection state machine action routines.
  *
- *  Copyright (c) 2013-2018 Arm Ltd.
+ *  Copyright (c) 2013-2019 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -27,13 +27,12 @@
 #include "sch_api_ble.h"
 #include "wsf_trace.h"
 #include "util/bstream.h"
+#include "lctr_int_conn.h"
 #include <string.h>
 
 /*************************************************************************************************/
 /*!
  *  \brief      Start initiate connection scan.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrInitActInitiate(void)
@@ -55,7 +54,7 @@ void lctrInitActInitiate(void)
 
     uint32_t interMinUsec = LCTR_CONN_IND_US(pInitMsg->connSpec.connIntervalMin);
     uint32_t interMaxUsec = LCTR_CONN_IND_US(pInitMsg->connSpec.connIntervalMax);
-    uint32_t durUsec = pCtx->localConnDurUsec;
+    uint32_t durUsec = pCtx->effConnDurUsec;
 
     if (!SchRmAdd(LCTR_GET_CONN_HANDLE(pCtx), SCH_RM_PREF_PERFORMANCE, interMinUsec, interMaxUsec, durUsec, &connInterUsec, lctrGetConnRefTime))
     {
@@ -84,7 +83,6 @@ void lctrInitActInitiate(void)
 
   lctrMstInit.data.init.connHandle = LCTR_GET_CONN_HANDLE(pCtx);
   lctrMstInit.data.init.connInterval = LCTR_US_TO_CONN_IND(connInterUsec);
-  lctrMstInit.data.init.connBodLoaded = FALSE;
   lctrMstInit.scanParam = pInitMsg->scanParam;
 
   BbStart(BB_PROT_BLE);
@@ -114,8 +112,6 @@ void lctrInitActInitiate(void)
 /*************************************************************************************************/
 /*!
  *  \brief      Establish connection.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrInitActConnect(void)
@@ -170,8 +166,6 @@ void lctrInitActConnect(void)
 /*************************************************************************************************/
 /*!
  *  \brief      Shutdown active initiation operation.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrInitActShutdown(void)
@@ -192,18 +186,16 @@ void lctrInitActShutdown(void)
 /*************************************************************************************************/
 /*!
  *  \brief      Terminated scan after host initiate disable.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrInitActScanTerm(void)
 {
+  lctrConnCtx_t *pConnCtx = LCTR_GET_CONN_CTX(lctrMstInit.data.init.connHandle);
+  lctrSendConnMsg(pConnCtx, LCTR_CONN_INIT_CANCELED);
+
   BbStop(BB_PROT_BLE);
 
   lctrScanCleanup(&lctrMstInit);
-
-  SchRmRemove(lctrMstInit.data.init.connHandle);
-  lctrFreeConnCtx(LCTR_GET_CONN_CTX(lctrMstInit.data.init.connHandle));
 
   LlCreateConnCancelCnf_t evt =
   {
@@ -229,21 +221,22 @@ void lctrInitActScanTerm(void)
 /*************************************************************************************************/
 /*!
  *  \brief      Terminated scan after host reset.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrInitActResetTerm(void)
 {
+
+  lctrConnCtx_t *pConnCtx = LCTR_GET_CONN_CTX(lctrMstInit.data.init.connHandle);
+  lctrSendConnMsg(pConnCtx, LCTR_CONN_TERMINATED);
+
   BbStop(BB_PROT_BLE);
+
   lctrScanCleanup(&lctrMstInit);
 }
 
 /*************************************************************************************************/
 /*!
  *  \brief      Notify host disallowing initiate.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrInitActDisallowInitiate(void)
@@ -256,8 +249,6 @@ void lctrInitActDisallowInitiate(void)
 /*************************************************************************************************/
 /*!
  *  \brief      Notify host disallowing initiate cancel.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrInitActDisallowCancel(void)

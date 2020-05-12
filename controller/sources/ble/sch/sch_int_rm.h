@@ -4,16 +4,16 @@
  *
  *  \brief      Internal scheduler resource manager interface file.
  *
- *  Copyright (c) 2013-2018 Arm Ltd.
+ *  Copyright (c) 2013-2019 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -46,16 +46,16 @@ extern "C" {
 #define SCH_RM_DIV_PREF_PER(n)      ((uint32_t)(((uint64_t)(n) * UINT64_C(1717987)) >> 34))
 
 /*! \brief      Minimum offset unit of reservation manager in microseconds. (Half of minimum isochronous interval) */
-#define SCH_RM_MIN_OFFSET_UNIT      2500
+#define SCH_RM_MIN_OFFSET_UNIT_US   2500
 
-/*! \brief      Distance between common reservation and uncommon reservation. */
-#define SCH_RM_OFFSET_UNCOMMON      3750
+/*! \brief      Default distance in microseconds between common reservation and uncommon reservation. */
+#define SCH_RM_OFFSET_UNCOMMON_US   3750
+
+/*! \brief      Margin in microseconds from the duration of the common reservation to uncommon reservation. */
+#define SCH_RM_MARGIN_UNCOMMON_US   50
 
 /*! \brief      Maximum depth to be searched between intervals. (4 means 16 times(2^4) */
 #define SCH_RM_MAX_SEARCH_DEPTH     4
-
-/*! \brief      Maximum span of scheduler elements. */
-#define SCH_RM_MAX_SPAN             0x80000000
 
 /**************************************************************************************************
   Data Types
@@ -66,8 +66,9 @@ typedef struct
 {
   uint8_t handle;           /*!< Reservation handle. */
   bool_t commIntUsed;       /*!< Reservation is controlled by common interval. */
-  uint8_t offsetBit;        /*! < Offset bit location. */
+  uint8_t offsetBit;        /*!< Offset bit location. */
   uint32_t interUsec;       /*!< Interval in microseconds. */
+  uint32_t durUsec;         /*!< Duration in microseconds. */
   GetRefTimeCb_t refTimeCb; /*!< Callback function to get reference time of the handle. */
 } schRmRsvn_t;
 
@@ -95,6 +96,7 @@ extern SchRmCb_t schRmCb;
 **************************************************************************************************/
 
 void schRmSortListDescending(uint32_t item[], uint8_t numItems);
+uint8_t schRmIntCalculateDepth(uint32_t intLarge, uint32_t intSmall);
 
 #ifdef __cplusplus
 };

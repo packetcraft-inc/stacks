@@ -4,16 +4,16 @@
  *
  *  \brief  Configuration Server internal module interface.
  *
- *  Copyright (c) 2010-2019 Arm Ltd.
+ *  Copyright (c) 2010-2019 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -59,7 +59,7 @@ void meshCfgMdlSrAccMsgRcvCback(uint8_t opcodeIdx, uint8_t *pMsgParam,
 
 void meshCfgMdlSrEmptyCback(const meshCfgMdlSrEvt_t *pEvt);
 void meshCfgMdlSrEmptyFriendStateChgCback(void);
-uint32_t meshCfgMdlSrEmptyPollTimeoutGetCback(meshAddress_t lpnAddr, uint16_t netKeyIndex);
+uint32_t meshCfgMdlSrEmptyPollTimeoutGetCback(meshAddress_t lpnAddr);
 void meshCfgMdlSrEmptyNetKeyDelNotifyCback(uint16_t netKeyIndex);
 void meshCfgMdlSrSendRsp(meshCfgMdlSrOpId_t opId, uint8_t *pMsgParam, uint16_t msgParamLen,
                          meshAddress_t cfgMdlClAddr, uint8_t recvTtl, uint16_t cfgMdlClNetKeyIndex);

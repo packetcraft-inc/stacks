@@ -43,6 +43,10 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define _NRF52810_PERIPHERALS_H
 
 
+/* Clock Peripheral */
+#define CLOCK_PRESENT
+#define CLOCK_COUNT 1
+
 /* Power Peripheral */
 #define POWER_PRESENT
 #define POWER_COUNT 1
@@ -137,6 +141,10 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define TEMP_PRESENT
 #define TEMP_COUNT 1
 
+/* Serial Peripheral Interface Master */
+#define SPI_PRESENT
+#define SPI_COUNT 1
+
 /* Serial Peripheral Interface Master with DMA */
 #define SPIM_PRESENT
 #define SPIM_COUNT 1
@@ -157,6 +165,10 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define SPIS0_EASYDMA_MAXCNT_SIZE 10
 
+/* Two Wire Interface Master */
+#define TWI_PRESENT
+#define TWI_COUNT 1
+
 /* Two Wire Interface Master with DMA */
 #define TWIM_PRESENT
 #define TWIM_COUNT 1
@@ -168,6 +180,10 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define TWIS_COUNT 1
 
 #define TWIS0_EASYDMA_MAXCNT_SIZE 10
+
+/* Universal Asynchronous Receiver-Transmitter */
+#define UART_PRESENT
+#define UART_COUNT 1
 
 /* Universal Asynchronous Receiver-Transmitter with DMA */
 #define UARTE_PRESENT

@@ -4,16 +4,16 @@
  *
  *  \brief  General Mesh Model type definitions.
  *
- *  Copyright (c) 2010-2019 Arm Ltd.
+ *  Copyright (c) 2010-2019 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -74,6 +74,8 @@ enum mmdlEvents
   MMDL_LIGHT_LIGHTNESS_SR_EVENT,        /*!< Light Lightness server event */
   MMDL_LIGHT_HSL_CL_EVENT,              /*!< Light HSL client event */
   MMDL_LIGHT_HSL_SR_EVENT,              /*!< Light HSL server event */
+  MMDL_LIGHT_CTL_CL_EVENT,              /*!< Light CTL client event */
+  MMDL_LIGHT_CTL_SR_EVENT,              /*!< Light CTL server event */
   MMDL_SCENE_CL_EVENT,                  /*!< Scene client event */
   MMDL_SCHEDULER_CL_EVENT,              /*!< Scheduler client event */
   MMDL_SCHEDULER_SR_EVENT,              /*!< Scheduler server event */
@@ -244,7 +246,27 @@ enum mmdlLightHslSrEventValues
   MMDL_LIGHT_HSL_HUE_SR_STATE_UPDATE_EVENT,              /*!< Light HSL Hue State Update event */
   MMDL_LIGHT_HSL_SAT_SR_STATE_UPDATE_EVENT,              /*!< Light HSL Saturation State Update event */
   MMDL_LIGHT_HSL_SR_STATE_UPDATE_EVENT,                  /*!< Light HSL State Update event */
+  MMDL_LIGHT_HSL_SR_RANGE_STATE_UPDATE_EVENT,            /*!< Light HSL Range State Updated event */
   MMDL_LIGHT_HSL_SR_MAX_EVENT                            /*!< Light HSL server max event */
+};
+
+/*! \brief Mesh Light CTL client model events */
+enum mmdlLightCtlClEventValues
+{
+  MMDL_LIGHT_CTL_CL_DEF_STATUS_EVENT,                    /*!< Light CTL Default Status event */
+  MMDL_LIGHT_CTL_CL_TEMP_STATUS_EVENT,                   /*!< Light CTL Temperature Status event */
+  MMDL_LIGHT_CTL_CL_RANGE_STATUS_EVENT,                  /*!< Light CTL Temperature Range Status event */
+  MMDL_LIGHT_CTL_CL_STATUS_EVENT,                        /*!< Light CTL Status event */
+  MMDL_LIGHT_CTL_CL_MAX_EVENT                            /*!< Light CTL client max event */
+};
+
+/*! \brief Mesh Light CTL server model events */
+enum mmdlLightCtlSrEventValues
+{
+  MMDL_LIGHT_CTL_TEMP_SR_STATE_UPDATE_EVENT,             /*!< Light CTL Temperature State Update event */
+  MMDL_LIGHT_CTL_SR_STATE_UPDATE_EVENT,                  /*!< Light CTL State Update event */
+  MMDL_LIGHT_CTL_SR_RANGE_STATE_UPDATE_EVENT,            /*!< Light CTL Range State Updated event */
+  MMDL_LIGHT_CTL_SR_MAX_EVENT                            /*!< Light CTL server max event */
 };
 
 /*! \brief Mesh Scene client model events */
@@ -322,6 +344,10 @@ enum mmdlInternalEventValues
   MMDL_LIGHT_HSL_HUE_SR_MSG_RCVD_TMR_CBACK,
   MMDL_LIGHT_HSL_SAT_SR_EVT_TMR_CBACK,
   MMDL_LIGHT_HSL_SAT_SR_MSG_RCVD_TMR_CBACK,
+  MMDL_LIGHT_CTL_SR_EVT_TMR_CBACK,
+  MMDL_LIGHT_CTL_SR_MSG_RCVD_TMR_CBACK,
+  MMDL_LIGHT_CTL_TEMP_SR_EVT_TMR_CBACK,
+  MMDL_LIGHT_CTL_TEMP_SR_MSG_RCVD_TMR_CBACK,
   MMDL_SCHEDULER_SR_EVT_TMR_CBACK,
 };
 
@@ -387,12 +413,36 @@ typedef struct mmdlLightHslState_tag
   uint16_t  saturation;   /*!< Saturation value */
 } mmdlLightHslState_t;
 
+/*! \brief Light HSL Range state definition */
+typedef struct mmdlLightHslRangeState_tag
+{
+  uint16_t    minHue;         /*!< Hue range minimum */
+  uint16_t    maxHue;         /*!< Hue range maximum */
+  uint16_t    minSaturation;  /*!< Saturation range minimum */
+  uint16_t    maxSaturation;  /*!< Saturation range maximum */
+} mmdlLightHslRangeState_t;
+
 /*! \brief Light Lightness Range state values. */
 typedef struct mmdlLightLightnessRangeState_tag
 {
   mmdlLightLightnessState_t rangeMin; /*!< Range minimum. */
   mmdlLightLightnessState_t rangeMax; /*!< Range maximum. */
 } mmdlLightLightnessRangeState_t;
+
+/*! \brief Light CTL state definition */
+typedef struct mmdlLightCtlState_tag
+{
+  uint16_t  ltness;       /*!< Lightness value */
+  uint16_t  temperature;  /*!< Temperature value */
+  uint16_t  deltaUV;      /*!< Delta UV value */
+} mmdlLightCtlState_t;
+
+/*! \brief Light CTL Range state definition */
+typedef struct mmdlLightCtlRangeState_tag
+{
+  uint16_t  rangeMin;       /*!< Range minimum. */
+  uint16_t  rangeMax;       /*!< Range maximum. */
+} mmdlLightCtlRangeState_t;
 
 /*! \brief Generic Battery state values. */
 typedef struct mmdlGenBatteryState_tag

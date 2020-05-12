@@ -4,16 +4,16 @@
  *
  *  \brief  Mesh Provisioning Server module interface.
  *
- *  Copyright (c) 2010-2018 Arm Ltd.
+ *  Copyright (c) 2010-2018 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -173,6 +173,7 @@ typedef struct meshPrvSrSessionData_tag
     uint8_t     sessionNonce[MESH_PRV_SESSION_NONCE_SIZE];
     uint8_t     confirmationKey[MESH_SEC_TOOL_AES_BLOCK_SIZE];
     uint8_t     peerConfirmation[MESH_PRV_PDU_CONFIRM_CONFIRM_SIZE];
+    bool_t      peerConfirmationReceived;
   } authParams;
   uint8_t ecdhSecret[MESH_SEC_TOOL_ECC_KEY_SIZE];
   uint8_t provisioningDataAndMic[MESH_PRV_PDU_DATA_PARAM_SIZE];
@@ -322,6 +323,7 @@ void meshPrvSrActPrepareOobAction(void *pCcb, void *pMsg);
 void meshPrvSrActWaitInput(void *pCcb, void *pMsg);
 void meshPrvSrActSendInputComplete(void *pCcb, void *pMsg);
 void meshPrvSrActWaitConfirmation(void *pCcb, void *pMsg);
+void meshPrvSrActSaveConfirmation(void *pCcb, void *pMsg);
 void meshPrvSrActCalcConfirmation(void *pCcb, void *pMsg);
 void meshPrvSrActSendConfirmation(void *pCcb, void *pMsg);
 void meshPrvSrActWaitRandom(void *pCcb, void *pMsg);

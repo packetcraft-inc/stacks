@@ -4,16 +4,16 @@
  *
  *  \brief  HCI core platform-specific module single-chip.
  *
- *  Copyright (c) 2009-2018 Arm Ltd.
+ *  Copyright (c) 2009-2018 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -83,7 +83,25 @@ static const uint16_t hciEvtCbackLen[] =
   sizeof(LlPerAdvSyncEstdCnf_t),                       /* LL_PER_ADV_SYNC_EST_IND */
   sizeof(LlPerAdvSyncLostInd_t),                       /* LL_PER_ADV_SYNC_LOST_IND */
   sizeof(LlPerAdvReportInd_t),                         /* LL_PER_ADV_REPORT_IND */
-  sizeof(LlChSelInd_t)                                 /* LL_CH_SEL_ALGO_IND */
+  sizeof(LlChSelInd_t),                                /* LL_CH_SEL_ALGO_IND */
+  /* --- Core Spec 5.1 --- */
+  sizeof(wsfMsgHdr_t),                                 /* LL_CONNLESS_IQ_REPORT_IND */
+  sizeof(wsfMsgHdr_t),                                 /* LL_CONN_IQ_REPORT_IND */
+  sizeof(wsfMsgHdr_t),                                 /* LL_CTE_REQ_FAILED_IND */
+  sizeof(LlPerSyncTrsfRcvdInd_t),                      /* LL_PER_SYNC_TRSF_RCVD_IND */
+  /* --- Core Spec Milan --- */
+  sizeof(LlCisEstInd_t),                               /* LL_CIS_EST_IND */
+  sizeof(LlCisReqInd_t),                               /* LL_CIS_REQ_IND */
+  sizeof(LlCreateBigCnf_t),                            /* LL_CREATE_BIG_CNF */
+  sizeof(LlTerminateBigInd_t),                         /* LL_TERM_BIG_IND */
+  sizeof(LlBigTermSyncCnf_t),                          /* LL_BIG_TERM_SYNC_CNF */
+  sizeof(LlBigSyncEstInd_t),                           /* LL_BIG_SYNC_EST_IND */
+  sizeof(LlBigSyncLostInd_t),                          /* LL_BIG_SYNC_LOST_IND */
+  sizeof(LlPeerScaCnf_t),                              /* LL_REQ_PEER_SCA_IND */
+  sizeof(LlPowerReportInd_t),                          /* LL_TX_POWER_REPORTING_IND */
+  sizeof(LlPathLossThresholdEvt_t),                    /* LL_PATH_LOSS_REPORTING_IND */
+  sizeof(LlIsoEventCmplInd_t),                         /* LL_ISO_EVT_CMPL_IND */
+  sizeof(LlBigInfoAdvRptInd_t)                         /* LL_BIG_INFO_ADV_REPORT_IND */
 };
 
 /*************************************************************************************************/
@@ -97,7 +115,7 @@ static const uint16_t hciEvtCbackLen[] =
 /*************************************************************************************************/
 size_t hciCoreSizeOfEvt(uint8_t event)
 {
-  return (event > LL_CH_SEL_ALGO_IND) ? sizeof(wsfMsgHdr_t) : hciEvtCbackLen[event];
+  return (event > LL_BIG_INFO_ADV_REPORT_IND) ? sizeof(wsfMsgHdr_t) : hciEvtCbackLen[event];
 }
 
 /*************************************************************************************************/
@@ -301,13 +319,27 @@ void HciCoreHandler(wsfEventMask_t event, wsfMsgHdr_t *pMsg)
         WsfMsgFree(pBuf);
       }
       /* Handle ACL data */
-      else
+      else if (handlerId == HCI_ACL_TYPE)
       {
         /* Reassemble */
         if ((pBuf = hciCoreAclReassembly(pBuf)) != NULL)
         {
           /* Call ACL callback; client will free buffer */
           hciCb.aclCback(pBuf);
+        }
+      }
+      /* Handle ISO data */
+      else
+      {
+        if (hciCb.isoCback)
+        {
+          /* Call ISO callback; client will free buffer */
+          hciCb.isoCback(pBuf);
+        }
+        else
+        {
+          /* free buffer */
+          WsfMsgFree(pBuf);
         }
       }
     }
@@ -399,7 +431,26 @@ uint8_t *HciGetSupStates(void)
  *  \return Supported features.
  */
 /*************************************************************************************************/
-uint32_t HciGetLeSupFeat(void)
+uint64_t HciGetLeSupFeat(void)
+{
+  uint64_t supFeat;
+  uint8_t  feat[HCI_LE_STATES_LEN];
+
+  LlGetFeatures(feat);
+
+  BYTES_TO_UINT64(supFeat, feat);
+
+  return supFeat;
+}
+
+/*************************************************************************************************/
+/*!
+ *  \brief  Return the LE supported features supported by the controller.
+ *
+ *  \return Supported features.
+ */
+/*************************************************************************************************/
+uint32_t HciGetLeSupFeat32(void)
 {
   uint32_t supFeat;
   uint8_t  feat[HCI_LE_STATES_LEN];

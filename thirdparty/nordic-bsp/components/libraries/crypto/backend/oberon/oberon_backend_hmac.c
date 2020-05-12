@@ -1,7 +1,7 @@
 /**
- * Copyright (c) 2018, Nordic Semiconductor ASA
+ * Copyright (c) 2018 - 2019, Nordic Semiconductor ASA
  *
- *
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -58,7 +58,7 @@ static ret_code_t oberon_backend_hmac_init_sha256(void      * const p_context,
     nrf_crypto_backend_oberon_hmac_sha256_context_t * p_ctx =
         (nrf_crypto_backend_oberon_hmac_sha256_context_t *)p_context;
 
-    occ_hmac_sha256_init(&p_ctx->oberon_ctx, p_key, key_size);
+    ocrypto_hmac_sha256_init(&p_ctx->oberon_ctx, p_key, key_size);
 
     return NRF_SUCCESS;
 }
@@ -71,7 +71,7 @@ static ret_code_t oberon_backend_hmac_update_sha256(void    * const p_context,
     nrf_crypto_backend_oberon_hmac_sha256_context_t * p_ctx =
         (nrf_crypto_backend_oberon_hmac_sha256_context_t *)p_context;
 
-    occ_hmac_sha256_update(&p_ctx->oberon_ctx, p_data, size);
+    ocrypto_hmac_sha256_update(&p_ctx->oberon_ctx, p_data, size);
 
     return NRF_SUCCESS;
 }
@@ -84,7 +84,7 @@ static ret_code_t oberon_backend_hmac_finalize_sha256(void      * const p_contex
     nrf_crypto_backend_oberon_hmac_sha256_context_t * const p_ctx =
         (nrf_crypto_backend_oberon_hmac_sha256_context_t *)p_context;
 
-    occ_hmac_sha256_final(p_digest, &p_ctx->oberon_ctx);
+    ocrypto_hmac_sha256_final(&p_ctx->oberon_ctx, p_digest);
 
     // Assume operation was successful and update the digest size accordingly.
     *p_size = p_ctx->header.p_info->digest_size;
@@ -119,7 +119,7 @@ static ret_code_t oberon_backend_hmac_init_sha512(void      * const p_context,
     nrf_crypto_backend_oberon_hmac_sha512_context_t * p_ctx =
         (nrf_crypto_backend_oberon_hmac_sha512_context_t *)p_context;
 
-    occ_hmac_sha512_init(&p_ctx->oberon_ctx, p_key, key_size);
+    ocrypto_hmac_sha512_init(&p_ctx->oberon_ctx, p_key, key_size);
 
     return NRF_SUCCESS;
 }
@@ -132,7 +132,7 @@ static ret_code_t oberon_backend_hmac_update_sha512(void    * const p_context,
     nrf_crypto_backend_oberon_hmac_sha512_context_t * p_ctx =
         (nrf_crypto_backend_oberon_hmac_sha512_context_t *)p_context;
 
-    occ_hmac_sha512_update(&p_ctx->oberon_ctx, p_data, size);
+    ocrypto_hmac_sha512_update(&p_ctx->oberon_ctx, p_data, size);
 
     return NRF_SUCCESS;
 }
@@ -145,7 +145,7 @@ static ret_code_t oberon_backend_hmac_finalize_sha512(void      * const p_contex
     nrf_crypto_backend_oberon_hmac_sha512_context_t * const p_ctx =
         (nrf_crypto_backend_oberon_hmac_sha512_context_t *)p_context;
 
-    occ_hmac_sha512_final(p_digest, &p_ctx->oberon_ctx);
+    ocrypto_hmac_sha512_final(&p_ctx->oberon_ctx, p_digest);
 
     // Assume operation was successful and update the digest size accordingly.
     *p_size = p_ctx->header.p_info->digest_size;

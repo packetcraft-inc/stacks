@@ -4,16 +4,16 @@
  *
  *  \brief  Example GATT and GAP service implementations.
  *
- *  Copyright (c) 2009-2019 Arm Ltd.
+ *  Copyright (c) 2009-2019 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -48,7 +48,7 @@
 #endif
 
 /*! Default device name */
-#define CORE_DEFAULT_DEV_NAME       "Cordio"
+#define CORE_DEFAULT_DEV_NAME       "Packetcraft"
 
 /*! Length of default device name */
 #define CORE_DEFAULT_DEV_NAME_LEN   6
@@ -167,7 +167,7 @@ static const attsAttr_t gapList[] =
     sizeof(gapValRpao),
     0,
     ATTS_PERMIT_READ
-  }
+  },
 };
 
 /* GAP group structure */
@@ -202,7 +202,7 @@ static uint8_t gattValScChCcc[] = {UINT16_TO_BYTES(0x0000)};
 static const uint16_t gattLenScChCcc = sizeof(gattValScChCcc);
 
 /* client supported features characteristic */
-static const uint8_t gattValCsfCh[] = {ATT_PROP_READ, UINT16_TO_BYTES(GATT_CSF_HDL), UINT16_TO_BYTES(ATT_UUID_CLIENT_SUPPORTED_FEATURES)};
+static const uint8_t gattValCsfCh[] = {ATT_PROP_READ | ATT_PROP_WRITE, UINT16_TO_BYTES(GATT_CSF_HDL), UINT16_TO_BYTES(ATT_UUID_CLIENT_SUPPORTED_FEATURES)};
 static const uint16_t gattLenCsfCh = sizeof(gattValCsfCh);
 
 /* client supported features */
@@ -216,6 +216,15 @@ static const uint16_t gattLenDbhCh = sizeof(gattValDbhCh);
 /* database hash */
 static uint8_t gattValDbh[ATT_DATABASE_HASH_LEN] = { 0 };
 static const uint16_t gattLenDbh = sizeof(gattValDbh);
+
+/* server supported features characteristic */
+static const uint8_t gattValSsfCh[] = {ATT_PROP_READ, UINT16_TO_BYTES(GATT_SSF_HDL), UINT16_TO_BYTES(ATT_UUID_SERVER_SUPPORTED_FEATURES)};
+static const uint16_t gattLenSsfCh = sizeof(gattValSsfCh);
+
+/*  server supported features value */
+static uint8_t gattValSsf[] = {0};
+static const uint16_t gattLenSsf = sizeof(gattValSsf);
+
 
 /* Attribute list for GATT group */
 static const attsAttr_t gattList[] =
@@ -283,6 +292,22 @@ static const attsAttr_t gattList[] =
     sizeof(gattValDbh),
     ATTS_SET_READ_CBACK,
     (ATTS_PERMIT_READ | CORE_SEC_PERMIT_READ)
+  },
+  {
+    attChUuid,
+    (uint8_t *) gattValSsfCh,
+    (uint16_t *) &gattLenSsfCh,
+    sizeof(gattValSsfCh),
+    0,
+    ATTS_PERMIT_READ
+  },
+  {
+    attSsfChUuid,
+    gattValSsf,
+    (uint16_t *) &gattLenSsf,
+    sizeof(gattValSsf),
+    0,
+    ATTS_PERMIT_READ
   }
 };
 
@@ -384,4 +409,18 @@ void SvcCoreGapAddRpaoCh(void)
   {
     svcGapGroup.endHandle = GAP_RPAO_HDL;
   }
+}
+
+/*************************************************************************************************/
+/*!
+ *  \brief  Set the Server Supported Features (SSF) bitmask.
+ *
+ *  \param  value   New value.
+ *
+ *  \return None.
+ */
+/*************************************************************************************************/
+void SvcCoreGattSetSsf(uint8_t value)
+{
+  gattValSsf[0] = value;
 }

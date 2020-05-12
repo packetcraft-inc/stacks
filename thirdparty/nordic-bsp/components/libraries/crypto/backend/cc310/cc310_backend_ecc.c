@@ -1,7 +1,7 @@
 /**
- * Copyright (c) 2018, Nordic Semiconductor ASA
+ * Copyright (c) 2018 - 2019, Nordic Semiconductor ASA
  *
- *
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -129,11 +129,11 @@ ret_code_t nrf_crypto_backend_cc310_ecc_public_key_convert(
 
     cc310_backend_enable();
 
-    crys_error = CRYS_ECPKI_BuildPublKeyFullCheck(p_domain,
-                                                  ucompressed_key,
-                                                  p_info->raw_public_key_size + 1,
-                                                  &p_pub->key.cc310_public_key,
-                                                  p_temp_data);
+    crys_error = CRYS_ECPKI_BuildPublKeyPartlyCheck(p_domain,
+                                                    ucompressed_key,
+                                                    p_info->raw_public_key_size + 1,
+                                                    &p_pub->key.cc310_public_key,
+                                                    p_temp_data);
 
     cc310_backend_disable();
 

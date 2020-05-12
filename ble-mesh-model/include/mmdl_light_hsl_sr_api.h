@@ -4,16 +4,16 @@
  *
  *  \brief  Light HSL Server Model API.
  *
- *  Copyright (c) 2010-2018 Arm Ltd.
+ *  Copyright (c) 2010-2018 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -41,12 +41,19 @@ extern "C"
   Data Types
 **************************************************************************************************/
 
+/*! \brief Union of HSL states */
+typedef union mmdlLightHslStates_tag
+{
+  mmdlLightHslState_t      state;              /*!< State */
+  mmdlLightHslRangeState_t rangeState;         /*!< Range state */
+} mmdlLightHslStates_t;
+
 /*! \brief Light HSL Server Model State Update event structure */
 typedef struct mmdlLightHslSrStateUpdate_tag
 {
   wsfMsgHdr_t                  hdr;             /*!< WSF message header */
   meshElementId_t              elemId;          /*!< Element identifier */
-  mmdlLightHslState_t          state;           /*!< Updated state */
+  mmdlLightHslStates_t         hslStates;       /*!< Updated states */
 } mmdlLightHslSrStateUpdate_t;
 
 /*! \brief Light HSL Server Model event callback parameters structure */
@@ -72,6 +79,14 @@ typedef struct mmdlLightHslSrStoredState_tag
   uint16_t                    maxSat;                         /*!< Maximum Saturation value */
 }mmdlLightHslSrStoredState_t;
 
+/*! \brief Light HSL transition step definition */
+typedef struct mmdlLightHslTransStep_tag
+{
+  int16_t  ltness;       /*!< Lightness step value */
+  int16_t  hue;          /*!< Hue step value */
+  int16_t  saturation;   /*!< Saturation step value */
+} mmdlLightHslTransStep_t;
+
 /*! \brief Model Light HSL Server descriptor definition */
 typedef struct mmdlLightHslSrDesc_tag
 {
@@ -87,6 +102,8 @@ typedef struct mmdlLightHslSrDesc_tag
                                                  *   replaced with the target state. If set to 0,
                                                  *   the target state is ignored. Unit is 1 ms.
                                                  */
+  mmdlLightHslTransStep_t     transitionStep;   /*!< Transition state update step */
+  uint16_t                    steps;            /*!< The number of transition steps */
   uint8_t                     delay5Ms;         /*!< Delay until the transition to the new state
                                                  *   begins. Unit is 5 ms.
                                                  */
@@ -242,6 +259,30 @@ void MmdlLightHslSrBind2OnPowerUp(meshElementId_t onPowerUpElemId, meshElementId
  */
 /*************************************************************************************************/
 void MmdlLightHslSrBind2LtLtnessAct(meshElementId_t ltElemId, meshElementId_t hslElemId);
+
+/*************************************************************************************************/
+/*!
+ *  \brief     Get the local Light HSL state.
+ *
+ *  \param[in] elementId  Identifier of the Element implementing the model.
+ *
+ *  \return    None.
+ */
+/*************************************************************************************************/
+void MmdlLightHslSrGetState(meshElementId_t elementId);
+
+/*************************************************************************************************/
+/*!
+ *  \brief     Set the local Light HSL state.
+ *
+ *  \param[in] elementId    Identifier of the Element implementing the model.
+ *  \param[in] pTargetState Target State for this transaction. See ::mmdlLightHslState_t
+ *
+ *  \return    None.
+ */
+/*************************************************************************************************/
+void MmdlLightHslSrSetState(meshElementId_t elementId,
+                            mmdlLightHslState_t *pTargetState);
 
 #ifdef __cplusplus
 }

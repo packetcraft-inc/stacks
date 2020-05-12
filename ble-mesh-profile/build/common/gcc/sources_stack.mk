@@ -1,0 +1,41 @@
+###################################################################################################
+#
+# Source and include definition
+#
+# Copyright (c) 2012-2018 Arm Ltd. All Rights Reserved.
+#
+# Copyright (c) 2019 Packetcraft, Inc.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+###################################################################################################
+
+INC_DIRS += \
+	$(ROOT_DIR)/ble-mesh-profile/include \
+	$(ROOT_DIR)/ble-mesh-profile/sources/stack/cfg \
+	$(ROOT_DIR)/ble-mesh-profile/sources/stack/access \
+	$(ROOT_DIR)/ble-mesh-profile/sources/stack/api \
+	$(ROOT_DIR)/ble-mesh-profile/sources/stack/bearer \
+	$(ROOT_DIR)/ble-mesh-profile/sources/stack/friend \
+	$(ROOT_DIR)/ble-mesh-profile/sources/stack/include \
+	$(ROOT_DIR)/ble-mesh-profile/sources/stack/local_config \
+	$(ROOT_DIR)/ble-mesh-profile/sources/stack/lpn \
+	$(ROOT_DIR)/ble-mesh-profile/sources/stack/network \
+	$(ROOT_DIR)/ble-mesh-profile/sources/stack/security \
+	$(ROOT_DIR)/ble-mesh-profile/sources/stack/seq_manager \
+	$(ROOT_DIR)/ble-mesh-profile/sources/stack/services/timers \
+	$(ROOT_DIR)/ble-mesh-profile/sources/stack/services/utils \
+	$(ROOT_DIR)/ble-mesh-profile/sources/stack/transports
+
+C_FILES += \
+	$(sort $(shell find $(ROOT_DIR)/ble-mesh-profile/sources/stack -name *.c))

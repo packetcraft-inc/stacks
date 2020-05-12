@@ -41,7 +41,11 @@
 
 /* SEP core clock frequency in MHz */
 #define DX_SEP_FREQ_MHZ 64
-#define DX_BASE_CC 0x5002B000
+#if defined(CRYPTOCELL_ARCH_BASE_ADDRESS)
+#define DX_BASE_CC CRYPTOCELL_ARCH_BASE_ADDRESS
+#else
+#error Please set CRYPTOCELL_ARCH_BASE_ADDRESS to a non-negative number
+#endif
 
 #define DX_BASE_ENV_REGS 0x40008000
 #define DX_BASE_ENV_CC_MEMORIES 0x40008000

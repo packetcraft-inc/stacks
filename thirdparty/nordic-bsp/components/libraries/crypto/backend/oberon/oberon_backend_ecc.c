@@ -1,7 +1,7 @@
 /**
- * Copyright (c) 2018, Nordic Semiconductor ASA
+ * Copyright (c) 2018 - 2019, Nordic Semiconductor ASA
  *
- *
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -55,13 +55,13 @@
 #include "oberon_backend_ecc.h"
 
 #if NRF_MODULE_ENABLED(NRF_CRYPTO_BACKEND_OBERON_ECC_SECP256R1)
-#include "occ_ecdh_p256.h"
+#include "ocrypto_ecdh_p256.h"
 #endif
 #if NRF_MODULE_ENABLED(NRF_CRYPTO_BACKEND_OBERON_ECC_CURVE25519)
-#include "occ_curve25519.h"
+#include "ocrypto_curve25519.h"
 #endif
 #if NRF_MODULE_ENABLED(NRF_CRYPTO_BACKEND_OBERON_ECC_ED25519)
-#include "occ_ed25519.h"
+#include "ocrypto_ed25519.h"
 #endif
 
 
@@ -242,7 +242,7 @@ ret_code_t nrf_crypto_backend_secp256r1_key_pair_generate(
         return result;
     }
 
-    result = occ_ecdh_p256_public_key(p_pub->key, p_prv->key);
+    result = ocrypto_ecdh_p256_public_key(p_pub->key, p_prv->key);
 
     if (result != 0)
     {
@@ -265,7 +265,7 @@ ret_code_t nrf_crypto_backend_secp256r1_public_key_calculate(
     nrf_crypto_backend_secp256r1_public_key_t * p_pub =
         (nrf_crypto_backend_secp256r1_public_key_t *)p_public_key;
 
-    result = occ_ecdh_p256_public_key(p_pub->key, p_prv->key);
+    result = ocrypto_ecdh_p256_public_key(p_pub->key, p_prv->key);
 
     if (result != 0)
     {
@@ -327,7 +327,7 @@ ret_code_t nrf_crypto_backend_curve25519_key_pair_generate(
     p_prv->key[31] &= 0x7F; // Highest bit has to be 0, because private key is 255-bit long.
     p_prv->key[31] |= 0x40; // Bit 254 has to be 1 (by definition)
 
-    occ_curve25519_scalarmult_base(p_pub->key, p_prv->key);
+    ocrypto_curve25519_scalarmult_base(p_pub->key, p_prv->key);
 
     return NRF_SUCCESS;
 }
@@ -345,7 +345,7 @@ ret_code_t nrf_crypto_backend_curve25519_public_key_calculate(
         (nrf_crypto_backend_curve25519_public_key_t *)p_public_key;
 
     // Private key bit fixing is done inside Oberon library.
-    occ_curve25519_scalarmult_base(p_pub->key, p_prv->key);
+    ocrypto_curve25519_scalarmult_base(p_pub->key, p_prv->key);
 
     return NRF_SUCCESS;
 }
@@ -394,7 +394,7 @@ ret_code_t nrf_crypto_backend_ed25519_private_key_from_raw(
 
     memcpy(p_prv->private_part, p_raw_data, sizeof(p_prv->private_part));
 
-    occ_ed25519_public_key(p_prv->public_part, p_prv->private_part);
+    ocrypto_ed25519_public_key(p_prv->public_part, p_prv->private_part);
 
     return NRF_SUCCESS;
 }
@@ -420,7 +420,7 @@ ret_code_t nrf_crypto_backend_ed25519_key_pair_generate(
         return result;
     }
 
-    occ_ed25519_public_key(p_prv->public_part, p_prv->private_part);
+    ocrypto_ed25519_public_key(p_prv->public_part, p_prv->private_part);
 
     memcpy(p_pub->key, p_prv->public_part, sizeof(p_pub->key));
 

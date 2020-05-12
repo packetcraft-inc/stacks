@@ -4,16 +4,16 @@
  *
  *  \brief  Local Configuration implementation.
  *
- *  Copyright (c) 2010-2019 Arm Ltd.
+ *  Copyright (c) 2010-2019 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -331,6 +331,7 @@ static uint16_t meshLocalCfgGetTotalNumModels(void)
 static uint16_t meshLocalCfgGetTotalSubscrListSize(void)
 {
   uint16_t subscrListSize = 0;
+  uint16_t size;
   uint16_t j;
   uint8_t i;
 
@@ -340,11 +341,21 @@ static uint16_t meshLocalCfgGetTotalSubscrListSize(void)
     /* Sum up the Subscription Lists sizes for each models instance in elements. */
     for (j = 0; j < pMeshConfig->pElementArray[i].numSigModels; j++)
     {
-      subscrListSize += pMeshConfig->pElementArray[i].pSigModelArray[j].subscrListSize;
+      size = pMeshConfig->pElementArray[i].pSigModelArray[j].subscrListSize;
+
+      if (size != MMDL_SUBSCR_LIST_SHARED)
+      {
+        subscrListSize += size;
+      }
     }
     for (j = 0; j < pMeshConfig->pElementArray[i].numVendorModels; j++)
     {
-      subscrListSize += pMeshConfig->pElementArray[i].pVendorModelArray[j].subscrListSize;
+      size = pMeshConfig->pElementArray[i].pVendorModelArray[j].subscrListSize;
+
+      if (size != MMDL_SUBSCR_LIST_SHARED)
+      {
+        subscrListSize += size;
+      }
     }
   }
   return subscrListSize;
@@ -539,7 +550,7 @@ static uint16_t meshLocalCfgSetAddress(meshAddress_t address, const uint8_t *pLa
           }
 
           /* Update Virtual Address entry in NVM. */
-          WsfNvmWriteData(MESH_LOCAL_CFG_NVM_VIRTUAL_ADDR_DATASET_ID, (uint8_t *)localCfgVirtualAddrList.pVirtualAddrList,
+          WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_VIRTUAL_ADDR_DATASET_ID, (uint8_t *)localCfgVirtualAddrList.pVirtualAddrList,
                                      sizeof(meshLocalCfgVirtualAddrListEntry_t) * localCfgVirtualAddrList.virtualAddrListSize, NULL);
 
           return i;
@@ -577,7 +588,7 @@ static uint16_t meshLocalCfgSetAddress(meshAddress_t address, const uint8_t *pLa
           }
 
           /* Update Address entry in NVM. */
-          WsfNvmWriteData(MESH_LOCAL_CFG_NVM_ADDRESS_DATASET_ID, (uint8_t *)localCfgAddressList.pAddressList,
+          WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_ADDRESS_DATASET_ID, (uint8_t *)localCfgAddressList.pAddressList,
                                      sizeof(meshLocalCfgAddressListEntry_t) * localCfgAddressList.addressListSize, NULL);
 
           return i;
@@ -645,7 +656,7 @@ static void meshLocalCfgRemoveAddress(uint16_t addrEntryIdx, bool_t isVirtualAdd
     }
 
     /* Update Virtual Address entry in NVM. */
-    WsfNvmWriteData(MESH_LOCAL_CFG_NVM_VIRTUAL_ADDR_DATASET_ID, (uint8_t *)localCfgVirtualAddrList.pVirtualAddrList,
+    WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_VIRTUAL_ADDR_DATASET_ID, (uint8_t *)localCfgVirtualAddrList.pVirtualAddrList,
                                sizeof(meshLocalCfgVirtualAddrListEntry_t) * localCfgVirtualAddrList.virtualAddrListSize, NULL);
   }
   else
@@ -688,7 +699,7 @@ static void meshLocalCfgRemoveAddress(uint16_t addrEntryIdx, bool_t isVirtualAdd
     }
 
     /* Update Address entry in NVM. */
-    WsfNvmWriteData(MESH_LOCAL_CFG_NVM_ADDRESS_DATASET_ID, (uint8_t *)localCfgAddressList.pAddressList,
+    WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_ADDRESS_DATASET_ID, (uint8_t *)localCfgAddressList.pAddressList,
                                sizeof(meshLocalCfgAddressListEntry_t) * localCfgAddressList.addressListSize, NULL);
   }
 }
@@ -917,6 +928,170 @@ static void meshLocalCfgFriendSubscrEventNotifyCback(meshLocalCfgFriendSubscrEve
   (void)pEventParams;
 }
 
+/*************************************************************************************************/
+/*!
+ *  \brief     Get the local configuration of a model.
+ *
+ *  \param[in] elementId  Identifier of the element
+ *  \param[in] modelId    SIG model Id / Vendor model Id union
+ *  \param[in] isSig      TRUE if this is a SIG model, else FALSE
+ *
+ *  \return    If the model exists, returns a pointer to the model's local config structure.
+ *             Else NULL
+ */
+/*************************************************************************************************/
+static meshLocalCfgModelEntry_t* meshLocalCfgGetMdlCfg(meshElementId_t elementId,
+                                                       modelId_t modelId, bool_t isSig)
+{
+  uint16_t i;
+  meshModelId_t model;
+  meshLocalCfgModelEntry_t *p = NULL;
+
+  model.modelId = modelId;
+  model.isSigModel = isSig;
+
+  i = meshLocalCfgSearchModel(elementId, &model);
+
+  if (i != MESH_INVALID_ENTRY_INDEX)
+  {
+    p = &localCfgModel.pModelArray[i];
+  }
+
+  return p;
+}
+
+/*************************************************************************************************/
+/*!
+ *  \brief     Initialize the local model configuration structure
+ *
+ *  \param[in] id                 Identifier of the element
+ *  \param[in] idx                Pointer to the index of localCfgModel.pModelArray[]
+ *  \param[in] appKeyBindListIdx  Pointer to the app key bind list index
+ *  \param[in] subscrListIdx      Pointer to the subscription list index
+ *  \param[in] sharedSubscrList   TRUE if only models tht use a shared subscription list should be
+ *                                initialized. Else FALSE
+ *
+ *  \return    None
+ */
+/*************************************************************************************************/
+static void meshLocalCfgInitModels(meshElementId_t id, uint16_t * pIdx,
+                                   uint16_t * pAppKeyBindListIdx, uint16_t * pSubscrListIdx,
+                                   bool_t sharedSubscrList)
+{
+  uint32_t j;
+  const meshSigModel_t *pSigModel;
+  const meshVendorModel_t *pVendModel;
+  const meshLocalCfgModelEntry_t* pLinkCfg;
+  meshLocalCfgModelEntry_t * pLocalMdlCfg;
+
+  for (j = 0; j < pMeshConfig->pElementArray[id].numSigModels; j++)
+  {
+    /* Set local pointers */
+    pSigModel = &pMeshConfig->pElementArray[id].pSigModelArray[j];
+    pLocalMdlCfg = &localCfgModel.pModelArray[*pIdx];
+
+    /* Filter only models that corresponds to the input parameters */
+    if (((sharedSubscrList == TRUE) && (pSigModel->subscrListSize == MMDL_SUBSCR_LIST_SHARED)) ||
+        ((sharedSubscrList == FALSE) && (pSigModel->subscrListSize != MMDL_SUBSCR_LIST_SHARED)))
+    {
+      pLocalMdlCfg->elementId = id;
+      pLocalMdlCfg->modelId.modelId.sigModelId = pSigModel->modelId;
+      pLocalMdlCfg->modelId.isSigModel = TRUE;
+      pLocalMdlCfg->appKeyBindListStartIdx = *pAppKeyBindListIdx;
+      pLocalMdlCfg->appKeyBindListSize = pSigModel->appKeyBindListSize;
+      *pAppKeyBindListIdx += pLocalMdlCfg->appKeyBindListSize;
+      pLocalMdlCfg->publicationState.publishAddressIndex = MESH_INVALID_ENTRY_INDEX;
+      pLocalMdlCfg->publicationState.publishAppKeyEntryIndex = MESH_INVALID_ENTRY_INDEX;
+
+      if (pSigModel->subscrListSize == MMDL_SUBSCR_LIST_SHARED)
+      {
+        /* Initialize models that use a shared subscription list */
+        pLocalMdlCfg->subscrListSize = 0;
+        pLocalMdlCfg->subscrListStartIdx = 0;
+
+        WSF_ASSERT(pSigModel->pModelLink != NULL);
+
+        if (pSigModel->pModelLink != NULL)
+        {
+          pLinkCfg = meshLocalCfgGetMdlCfg(pSigModel->pModelLink->rootElementId,
+                                           pSigModel->pModelLink->rootModelId,
+                                           pSigModel->pModelLink->isSig);
+
+          WSF_ASSERT(pLinkCfg != NULL);
+
+          if (pLinkCfg != NULL)
+          {
+            pLocalMdlCfg->subscrListSize = pLinkCfg->subscrListSize;
+            pLocalMdlCfg->subscrListStartIdx = pLinkCfg->subscrListStartIdx;
+          }
+        }
+      }
+      else
+      {
+        /* Initialize root models that use a static subscription list */
+        pLocalMdlCfg->subscrListSize = pSigModel->subscrListSize;
+        pLocalMdlCfg->subscrListStartIdx = *pSubscrListIdx;
+        *pSubscrListIdx += pLocalMdlCfg->subscrListSize;
+      }
+
+      (*pIdx)++;
+    }
+  }
+
+  for (j = 0; j < pMeshConfig->pElementArray[id].numVendorModels; j++)
+  {
+    /* Set local pointers */
+    pVendModel = &pMeshConfig->pElementArray[id].pVendorModelArray[j];
+    pLocalMdlCfg = &localCfgModel.pModelArray[*pIdx];
+
+    /* Filter only models that corresponds to the input parameters */
+    if (((sharedSubscrList == TRUE) && (pVendModel->subscrListSize == MMDL_SUBSCR_LIST_SHARED)) ||
+        ((sharedSubscrList == FALSE) && (pVendModel->subscrListSize != MMDL_SUBSCR_LIST_SHARED)))
+    {
+      pLocalMdlCfg->elementId = id;
+      pLocalMdlCfg->modelId.modelId.vendorModelId = pVendModel->modelId;
+      pLocalMdlCfg->modelId.isSigModel = FALSE;
+      pLocalMdlCfg->appKeyBindListStartIdx = *pAppKeyBindListIdx;
+      pLocalMdlCfg->appKeyBindListSize = pVendModel->appKeyBindListSize;
+      *pAppKeyBindListIdx += pLocalMdlCfg->appKeyBindListSize;
+      pLocalMdlCfg->publicationState.publishAddressIndex = MESH_INVALID_ENTRY_INDEX;
+      pLocalMdlCfg->publicationState.publishAppKeyEntryIndex = MESH_INVALID_ENTRY_INDEX;
+
+      if (pVendModel->subscrListSize == MMDL_SUBSCR_LIST_SHARED)
+      {
+        /* Initialize models that use a shared subscription list */
+        pLocalMdlCfg->subscrListSize = 0;
+        pLocalMdlCfg->subscrListStartIdx = 0;
+
+        WSF_ASSERT(pVendModel->pModelLink != NULL);
+
+        if (pVendModel->pModelLink != NULL)
+        {
+          pLinkCfg = meshLocalCfgGetMdlCfg(pVendModel->pModelLink->rootElementId,
+                                           pVendModel->pModelLink->rootModelId,
+                                           pVendModel->pModelLink->isSig);
+
+          WSF_ASSERT(pLinkCfg != NULL);
+
+          if (pLinkCfg != NULL)
+          {
+            pLocalMdlCfg->subscrListSize = pLinkCfg->subscrListSize;
+            pLocalMdlCfg->subscrListStartIdx = pLinkCfg->subscrListStartIdx;
+          }
+        }
+      }
+      else
+      {
+        pLocalMdlCfg->subscrListSize = pVendModel->subscrListSize;
+        pLocalMdlCfg->subscrListStartIdx = *pSubscrListIdx;
+        *pSubscrListIdx += pLocalMdlCfg->subscrListSize;
+      }
+
+      (*pIdx)++;
+    }
+  }
+}
+
 /**************************************************************************************************
   Global Functions
 **************************************************************************************************/
@@ -966,7 +1141,7 @@ void MeshLocalCfgInit(void)
   uint32_t tempVal;
   uint16_t appKeyBindListStartIdx = 0;
   uint16_t subscrListStartIdx = 0;
-  uint16_t i, j, k;
+  uint16_t i, k;
   uint8_t *pMemBuff;
   bool_t retVal;
 
@@ -1112,50 +1287,16 @@ void MeshLocalCfgInit(void)
 
   k = 0;
 
+  /* Populate local model configuration with root models (that use a static subscription list) */
   for (i = 0; i < pMeshConfig->elementArrayLen; i++)
   {
-    for (j = 0; j < pMeshConfig->pElementArray[i].numSigModels; j++)
-    {
-      localCfgModel.pModelArray[k].elementId = (meshElementId_t)i;
-      localCfgModel.pModelArray[k].modelId.modelId.sigModelId =
-        pMeshConfig->pElementArray[i].pSigModelArray[j].modelId;
-      localCfgModel.pModelArray[k].modelId.isSigModel = TRUE;
-      localCfgModel.pModelArray[k].subscrListStartIdx = subscrListStartIdx;
-      localCfgModel.pModelArray[k].subscrListSize =
-        pMeshConfig->pElementArray[i].pSigModelArray[j].subscrListSize;
-      localCfgModel.pModelArray[k].appKeyBindListStartIdx = appKeyBindListStartIdx;
-      localCfgModel.pModelArray[k].appKeyBindListSize =
-        pMeshConfig->pElementArray[i].pSigModelArray[j].appKeyBindListSize;
-      subscrListStartIdx += localCfgModel.pModelArray[k].subscrListSize;
-      appKeyBindListStartIdx += localCfgModel.pModelArray[k].appKeyBindListSize;
-      localCfgModel.pModelArray[k].publicationState.publishAddressIndex =
-        MESH_INVALID_ENTRY_INDEX;
-      localCfgModel.pModelArray[k].publicationState.publishAppKeyEntryIndex =
-        MESH_INVALID_ENTRY_INDEX;
-      k++;
-    }
+    meshLocalCfgInitModels((meshElementId_t)i, &k, &appKeyBindListStartIdx, &subscrListStartIdx, FALSE);
+  }
 
-    for (j = 0; j < pMeshConfig->pElementArray[i].numVendorModels; j++)
-    {
-      localCfgModel.pModelArray[k].elementId = (meshElementId_t)i;
-      localCfgModel.pModelArray[k].modelId.modelId.vendorModelId =
-        pMeshConfig->pElementArray[i].pVendorModelArray[j].modelId;
-      localCfgModel.pModelArray[k].modelId.isSigModel = FALSE;
-      localCfgModel.pModelArray[k].subscrListStartIdx = subscrListStartIdx;
-      localCfgModel.pModelArray[k].subscrListSize =
-        pMeshConfig->pElementArray[i].pVendorModelArray[j].subscrListSize;
-      localCfgModel.pModelArray[k].appKeyBindListStartIdx = appKeyBindListStartIdx;
-      localCfgModel.pModelArray[k].appKeyBindListSize =
-        pMeshConfig->pElementArray[i].pVendorModelArray[j].appKeyBindListSize;
-      subscrListStartIdx += localCfgModel.pModelArray[k].subscrListSize;
-      appKeyBindListStartIdx += localCfgModel.pModelArray[k].appKeyBindListSize;
-
-      localCfgModel.pModelArray[k].publicationState.publishAddressIndex =
-        MESH_INVALID_ENTRY_INDEX;
-      localCfgModel.pModelArray[k].publicationState.publishAppKeyEntryIndex =
-        MESH_INVALID_ENTRY_INDEX;
-      k++;
-    }
+  /* Populate local model configuration with models that use a shared subscription list */
+  for (i = 0; i < pMeshConfig->elementArrayLen; i++)
+  {
+    meshLocalCfgInitModels((meshElementId_t)i, &k, &appKeyBindListStartIdx, &subscrListStartIdx, TRUE);
   }
 
   /* Initialize Heartbeat local structure. */
@@ -1185,38 +1326,38 @@ void MeshLocalCfgInit(void)
   /* Set Friend state to unsupported. */
   localCfg.friendState = MESH_FRIEND_FEATURE_NOT_SUPPORTED;
 
-  retVal = WsfNvmReadData(MESH_LOCAL_CFG_NVM_DATASET_ID, (uint8_t *)&localCfg,
+  retVal = WsfNvmReadData((uint64_t)MESH_LOCAL_CFG_NVM_DATASET_ID, (uint8_t *)&localCfg,
                              sizeof(localCfg), NULL);
 
-  retVal = WsfNvmReadData(MESH_LOCAL_CFG_NVM_NET_KEY_DATASET_ID, (uint8_t *)localCfgNetKeyList.pNetKeyList,
+  retVal = WsfNvmReadData((uint64_t)MESH_LOCAL_CFG_NVM_NET_KEY_DATASET_ID, (uint8_t *)localCfgNetKeyList.pNetKeyList,
                              sizeof(meshLocalCfgNetKeyListEntry_t) * localCfgNetKeyList.netKeyListSize, NULL);
 
-  retVal = WsfNvmReadData(MESH_LOCAL_CFG_NVM_APP_KEY_DATASET_ID, (uint8_t *)localCfgAppKeyList.pAppKeyList,
+  retVal = WsfNvmReadData((uint64_t)MESH_LOCAL_CFG_NVM_APP_KEY_DATASET_ID, (uint8_t *)localCfgAppKeyList.pAppKeyList,
                              sizeof(meshLocalCfgAppKeyListEntry_t) * localCfgAppKeyList.appKeyListSize, NULL);
 
-  retVal = WsfNvmReadData(MESH_LOCAL_CFG_NVM_APP_KEY_BIND_DATASET_ID, (uint8_t *)localCfgAppKeyBindList.pAppKeyBindList,
+  retVal = WsfNvmReadData((uint64_t)MESH_LOCAL_CFG_NVM_APP_KEY_BIND_DATASET_ID, (uint8_t *)localCfgAppKeyBindList.pAppKeyBindList,
                              sizeof(uint16_t) * localCfgAppKeyBindList.appKeyBindListSize, NULL);
 
-  retVal = WsfNvmReadData(MESH_LOCAL_CFG_NVM_ADDRESS_DATASET_ID, (uint8_t *)localCfgAddressList.pAddressList,
+  retVal = WsfNvmReadData((uint64_t)MESH_LOCAL_CFG_NVM_ADDRESS_DATASET_ID, (uint8_t *)localCfgAddressList.pAddressList,
                              sizeof(meshLocalCfgAddressListEntry_t) * localCfgAddressList.addressListSize, NULL);
 
-  retVal = WsfNvmReadData(MESH_LOCAL_CFG_NVM_VIRTUAL_ADDR_DATASET_ID, (uint8_t *)localCfgVirtualAddrList.pVirtualAddrList,
+  retVal = WsfNvmReadData((uint64_t)MESH_LOCAL_CFG_NVM_VIRTUAL_ADDR_DATASET_ID, (uint8_t *)localCfgVirtualAddrList.pVirtualAddrList,
                              sizeof(meshLocalCfgVirtualAddrListEntry_t) * localCfgVirtualAddrList.virtualAddrListSize, NULL);
 
-  retVal = WsfNvmReadData(MESH_LOCAL_CFG_NVM_SUBSCR_DATASET_ID, (uint8_t *)localCfgSubscrList.pSubscrList,
+  retVal = WsfNvmReadData((uint64_t)MESH_LOCAL_CFG_NVM_SUBSCR_DATASET_ID, (uint8_t *)localCfgSubscrList.pSubscrList,
                              sizeof(meshLocalCfgModelSubscrListEntry_t) * localCfgSubscrList.subscrListSize, NULL);
 
-  retVal = WsfNvmReadData(MESH_LOCAL_CFG_NVM_SEQ_NUMBER_DATASET_ID, (uint8_t *)localCfgElement.pSeqNumberArray,
+  retVal = WsfNvmReadData((uint64_t)MESH_LOCAL_CFG_NVM_SEQ_NUMBER_DATASET_ID, (uint8_t *)localCfgElement.pSeqNumberArray,
                              sizeof(meshSeqNumber_t) * localCfgElement.elementArrayLen, NULL);
 
 
-  retVal = WsfNvmReadData(MESH_LOCAL_CFG_NVM_SEQ_NUMBER_THRESH_DATASET_ID, (uint8_t *)localCfgElement.pSeqNumberThreshArray,
+  retVal = WsfNvmReadData((uint64_t)MESH_LOCAL_CFG_NVM_SEQ_NUMBER_THRESH_DATASET_ID, (uint8_t *)localCfgElement.pSeqNumberThreshArray,
                              sizeof(meshSeqNumber_t) * localCfgElement.elementArrayLen, NULL);
 
-  retVal = WsfNvmReadData(MESH_LOCAL_CFG_NVM_MODEL_DATASET_ID, (uint8_t *)localCfgModel.pModelArray,
+  retVal = WsfNvmReadData((uint64_t)MESH_LOCAL_CFG_NVM_MODEL_DATASET_ID, (uint8_t *)localCfgModel.pModelArray,
                              sizeof(meshLocalCfgModelEntry_t) * localCfgModel.modelArraySize, NULL);
 
-  retVal = WsfNvmReadData(MESH_LOCAL_CFG_NVM_HB_DATASET_ID, (uint8_t *)&localCfgHb, sizeof(localCfgHb), NULL);
+  retVal = WsfNvmReadData((uint64_t)MESH_LOCAL_CFG_NVM_HB_DATASET_ID, (uint8_t *)&localCfgHb, sizeof(localCfgHb), NULL);
 
   /* Register friendship callback. */
   localCfgCb.friendSubscrEventCback = meshLocalCfgFriendSubscrEventNotifyCback;
@@ -1260,7 +1401,7 @@ meshLocalCfgRetVal_t MeshLocalCfgSetPrimaryNodeAddress(meshAddress_t address)
     {
         localCfg.address = address;
 
-        WsfNvmWriteData(MESH_LOCAL_CFG_NVM_DATASET_ID, (uint8_t *)&localCfg, sizeof(localCfg), NULL);
+        WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_DATASET_ID, (uint8_t *)&localCfg, sizeof(localCfg), NULL);
 
         return MESH_SUCCESS;
     }
@@ -1557,7 +1698,7 @@ meshLocalCfgRetVal_t MeshLocalCfgSetPublishAddress(meshElementId_t elementId,
         localCfgModel.pModelArray[modelIdx].publicationState.publishToLabelUuid = FALSE;
 
         /* Update Model entry in NVM. */
-        WsfNvmWriteData(MESH_LOCAL_CFG_NVM_MODEL_DATASET_ID, (uint8_t *)localCfgModel.pModelArray,
+        WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_MODEL_DATASET_ID, (uint8_t *)localCfgModel.pModelArray,
                                    sizeof(meshLocalCfgModelEntry_t) * localCfgModel.modelArraySize, NULL);
       }
 
@@ -1586,7 +1727,7 @@ meshLocalCfgRetVal_t MeshLocalCfgSetPublishAddress(meshElementId_t elementId,
         localCfgAddressList.pAddressList[newAddrIdx].referenceCountPublish++;
 
         /* Update Address entry in NVM. */
-        WsfNvmWriteData(MESH_LOCAL_CFG_NVM_ADDRESS_DATASET_ID, (uint8_t *)localCfgAddressList.pAddressList,
+        WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_ADDRESS_DATASET_ID, (uint8_t *)localCfgAddressList.pAddressList,
                                    sizeof(meshLocalCfgAddressListEntry_t) * localCfgAddressList.addressListSize, NULL);
       }
 
@@ -1608,7 +1749,7 @@ meshLocalCfgRetVal_t MeshLocalCfgSetPublishAddress(meshElementId_t elementId,
       localCfgModel.pModelArray[modelIdx].publicationState.publishToLabelUuid = FALSE;
 
       /* Update Model entry in NVM. */
-      WsfNvmWriteData(MESH_LOCAL_CFG_NVM_MODEL_DATASET_ID, (uint8_t *)localCfgModel.pModelArray,
+      WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_MODEL_DATASET_ID, (uint8_t *)localCfgModel.pModelArray,
                                  sizeof(meshLocalCfgModelEntry_t) * localCfgModel.modelArraySize, NULL);
 
       return MESH_SUCCESS;
@@ -1723,7 +1864,7 @@ meshLocalCfgRetVal_t MeshLocalCfgSetPublishVirtualAddr(meshElementId_t elementId
         localCfgModel.pModelArray[modelIdx].publicationState.publishToLabelUuid = FALSE;
 
         /* Update Model entry in NVM. */
-        WsfNvmWriteData(MESH_LOCAL_CFG_NVM_MODEL_DATASET_ID, (uint8_t *)localCfgModel.pModelArray,
+        WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_MODEL_DATASET_ID, (uint8_t *)localCfgModel.pModelArray,
                                    sizeof(meshLocalCfgModelEntry_t) * localCfgModel.modelArraySize, NULL);
       }
 
@@ -1750,7 +1891,7 @@ meshLocalCfgRetVal_t MeshLocalCfgSetPublishVirtualAddr(meshElementId_t elementId
         localCfgVirtualAddrList.pVirtualAddrList[newAddrIdx].referenceCountPublish++;
 
         /* Update Address entry in NVM. */
-        WsfNvmWriteData(MESH_LOCAL_CFG_NVM_VIRTUAL_ADDR_DATASET_ID, (uint8_t *)localCfgVirtualAddrList.pVirtualAddrList,
+        WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_VIRTUAL_ADDR_DATASET_ID, (uint8_t *)localCfgVirtualAddrList.pVirtualAddrList,
                                    sizeof(meshLocalCfgVirtualAddrListEntry_t) * localCfgVirtualAddrList.virtualAddrListSize, NULL);
       }
 
@@ -1772,7 +1913,7 @@ meshLocalCfgRetVal_t MeshLocalCfgSetPublishVirtualAddr(meshElementId_t elementId
       localCfgModel.pModelArray[modelIdx].publicationState.publishToLabelUuid = TRUE;
 
       /* Update Model entry in NVM. */
-      WsfNvmWriteData(MESH_LOCAL_CFG_NVM_MODEL_DATASET_ID, (uint8_t *)localCfgModel.pModelArray,
+      WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_MODEL_DATASET_ID, (uint8_t *)localCfgModel.pModelArray,
                                  sizeof(meshLocalCfgModelEntry_t) * localCfgModel.modelArraySize, NULL);
 
       return MESH_SUCCESS;
@@ -1813,7 +1954,7 @@ meshLocalCfgRetVal_t MeshLocalCfgSetPublishPeriod(meshElementId_t elementId,
     localCfgModel.pModelArray[modelIdx].publicationState.publishPeriodStepRes = stepResolution;
 
     /* Update Model entry in NVM. */
-    WsfNvmWriteData(MESH_LOCAL_CFG_NVM_MODEL_DATASET_ID, (uint8_t *)localCfgModel.pModelArray,
+    WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_MODEL_DATASET_ID, (uint8_t *)localCfgModel.pModelArray,
                                sizeof(meshLocalCfgModelEntry_t) * localCfgModel.modelArraySize, NULL);
 
     return MESH_SUCCESS;
@@ -1895,7 +2036,7 @@ meshLocalCfgRetVal_t MeshLocalCfgSetPublishAppKeyIndex(meshElementId_t elementId
         appKeyIdx;
 
       /* Update Model entry in NVM. */
-      WsfNvmWriteData(MESH_LOCAL_CFG_NVM_MODEL_DATASET_ID, (uint8_t *)localCfgModel.pModelArray,
+      WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_MODEL_DATASET_ID, (uint8_t *)localCfgModel.pModelArray,
                                  sizeof(meshLocalCfgModelEntry_t) * localCfgModel.modelArraySize, NULL);
 
       return MESH_SUCCESS;
@@ -1928,7 +2069,7 @@ void MeshLocalCfgMdlClearPublishAppKeyIndex(meshElementId_t elementId, const mes
     localCfgModel.pModelArray[modelIdx].publicationState.publishAppKeyEntryIndex
       = MESH_INVALID_ENTRY_INDEX;
     /* Update Model entry in NVM. */
-    WsfNvmWriteData(MESH_LOCAL_CFG_NVM_MODEL_DATASET_ID, (uint8_t *)localCfgModel.pModelArray,
+    WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_MODEL_DATASET_ID, (uint8_t *)localCfgModel.pModelArray,
                                sizeof(meshLocalCfgModelEntry_t) * localCfgModel.modelArraySize, NULL);
   }
 }
@@ -1997,7 +2138,7 @@ meshLocalCfgRetVal_t MeshLocalCfgSetPublishFriendshipCredFlag(meshElementId_t el
     localCfgModel.pModelArray[modelIdx].publicationState.publishFriendshipCred = friendshipCredFlag;
 
     /* Update Model entry in NVM. */
-    WsfNvmWriteData(MESH_LOCAL_CFG_NVM_MODEL_DATASET_ID, (uint8_t *)localCfgModel.pModelArray,
+    WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_MODEL_DATASET_ID, (uint8_t *)localCfgModel.pModelArray,
                                sizeof(meshLocalCfgModelEntry_t) * localCfgModel.modelArraySize, NULL);
 
     return MESH_SUCCESS;
@@ -2065,7 +2206,7 @@ meshLocalCfgRetVal_t MeshLocalCfgSetPublishTtl(meshElementId_t elementId,
     localCfgModel.pModelArray[modelIdx].publicationState.publishTtl = publishTtl;
 
     /* Update Model entry in NVM. */
-    WsfNvmWriteData(MESH_LOCAL_CFG_NVM_MODEL_DATASET_ID, (uint8_t *)localCfgModel.pModelArray,
+    WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_MODEL_DATASET_ID, (uint8_t *)localCfgModel.pModelArray,
                                sizeof(meshLocalCfgModelEntry_t) * localCfgModel.modelArraySize, NULL);
 
     return MESH_SUCCESS;
@@ -2131,7 +2272,7 @@ meshLocalCfgRetVal_t MeshLocalCfgSetPublishRetransCount(meshElementId_t elementI
     localCfgModel.pModelArray[modelIdx].publicationState.publishRetransCount = retransCount;
 
     /* Update Model entry in NVM. */
-    WsfNvmWriteData(MESH_LOCAL_CFG_NVM_MODEL_DATASET_ID, (uint8_t *)localCfgModel.pModelArray,
+    WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_MODEL_DATASET_ID, (uint8_t *)localCfgModel.pModelArray,
                                sizeof(meshLocalCfgModelEntry_t) * localCfgModel.modelArraySize, NULL);
 
     return MESH_SUCCESS;
@@ -2206,7 +2347,7 @@ meshLocalCfgRetVal_t MeshLocalCfgSetPublishRetransIntvlSteps(meshElementId_t ele
       retransSteps;
 
     /* Update Model entry in NVM. */
-    WsfNvmWriteData(MESH_LOCAL_CFG_NVM_MODEL_DATASET_ID, (uint8_t *)localCfgModel.pModelArray,
+    WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_MODEL_DATASET_ID, (uint8_t *)localCfgModel.pModelArray,
                                sizeof(meshLocalCfgModelEntry_t) * localCfgModel.modelArraySize, NULL);
 
     return MESH_SUCCESS;
@@ -2311,7 +2452,7 @@ meshLocalCfgRetVal_t MeshLocalCfgAddAddressToSubscrList(meshElementId_t elementI
           localCfgSubscrList.pSubscrList[subscrIdx].subscrToLabelUuid = FALSE;
 
           /* Update Subscription List entry in NVM. */
-          WsfNvmWriteData(MESH_LOCAL_CFG_NVM_SUBSCR_DATASET_ID, (uint8_t *)localCfgSubscrList.pSubscrList,
+          WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_SUBSCR_DATASET_ID, (uint8_t *)localCfgSubscrList.pSubscrList,
                                        sizeof(meshLocalCfgModelSubscrListEntry_t) * localCfgSubscrList.subscrListSize, NULL);
 
           return MESH_SUCCESS;
@@ -2347,14 +2488,14 @@ meshLocalCfgRetVal_t MeshLocalCfgAddAddressToSubscrList(meshElementId_t elementI
         localCfgAddressList.pAddressList[newAddrIdx].referenceCountSubscr++;
 
         /* Update Address entry in NVM. */
-        WsfNvmWriteData(MESH_LOCAL_CFG_NVM_ADDRESS_DATASET_ID, (uint8_t *)localCfgAddressList.pAddressList,
+        WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_ADDRESS_DATASET_ID, (uint8_t *)localCfgAddressList.pAddressList,
                                    sizeof(meshLocalCfgAddressListEntry_t) * localCfgAddressList.addressListSize, NULL);
 
         localCfgSubscrList.pSubscrList[freeIdx].subscrAddressIndex = newAddrIdx;
         localCfgSubscrList.pSubscrList[freeIdx].subscrToLabelUuid = FALSE;
 
         /* Update Subscription List entry in NVM. */
-        WsfNvmWriteData(MESH_LOCAL_CFG_NVM_SUBSCR_DATASET_ID, (uint8_t *)localCfgSubscrList.pSubscrList,
+        WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_SUBSCR_DATASET_ID, (uint8_t *)localCfgSubscrList.pSubscrList,
                                      sizeof(meshLocalCfgModelSubscrListEntry_t) * localCfgSubscrList.subscrListSize, NULL);
 
         return MESH_SUCCESS;
@@ -2492,7 +2633,7 @@ meshLocalCfgRetVal_t MeshLocalCfgRemoveAddressFromSubscrList(meshElementId_t ele
           localCfgSubscrList.pSubscrList[subscrIdx].subscrToLabelUuid = FALSE;
 
           /* Update Subscription List entry in NVM. */
-          WsfNvmWriteData(MESH_LOCAL_CFG_NVM_SUBSCR_DATASET_ID, (uint8_t *)localCfgSubscrList.pSubscrList,
+          WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_SUBSCR_DATASET_ID, (uint8_t *)localCfgSubscrList.pSubscrList,
                                        sizeof(meshLocalCfgModelSubscrListEntry_t) * localCfgSubscrList.subscrListSize, NULL);
 
           return MESH_SUCCESS;
@@ -2564,7 +2705,7 @@ meshLocalCfgRetVal_t MeshLocalCfgAddVirtualAddrToSubscrList(meshElementId_t elem
           localCfgSubscrList.pSubscrList[subscrIdx].subscrToLabelUuid = TRUE;
 
           /* Update Subscription List entry in NVM. */
-          WsfNvmWriteData(MESH_LOCAL_CFG_NVM_SUBSCR_DATASET_ID, (uint8_t *)localCfgSubscrList.pSubscrList,
+          WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_SUBSCR_DATASET_ID, (uint8_t *)localCfgSubscrList.pSubscrList,
                                        sizeof(meshLocalCfgModelSubscrListEntry_t) * localCfgSubscrList.subscrListSize, NULL);
 
           return MESH_SUCCESS;
@@ -2600,14 +2741,14 @@ meshLocalCfgRetVal_t MeshLocalCfgAddVirtualAddrToSubscrList(meshElementId_t elem
         localCfgVirtualAddrList.pVirtualAddrList[newAddrIdx].referenceCountSubscr++;
 
         /* Update Address entry in NVM. */
-        WsfNvmWriteData(MESH_LOCAL_CFG_NVM_VIRTUAL_ADDR_DATASET_ID, (uint8_t *)localCfgVirtualAddrList.pVirtualAddrList,
+        WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_VIRTUAL_ADDR_DATASET_ID, (uint8_t *)localCfgVirtualAddrList.pVirtualAddrList,
                                    sizeof(meshLocalCfgVirtualAddrListEntry_t) * localCfgVirtualAddrList.virtualAddrListSize, NULL);
 
         localCfgSubscrList.pSubscrList[freeIdx].subscrAddressIndex = newAddrIdx;
         localCfgSubscrList.pSubscrList[freeIdx].subscrToLabelUuid = TRUE;
 
         /* Update Subscription List entry in NVM. */
-        WsfNvmWriteData(MESH_LOCAL_CFG_NVM_SUBSCR_DATASET_ID, (uint8_t *)localCfgSubscrList.pSubscrList,
+        WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_SUBSCR_DATASET_ID, (uint8_t *)localCfgSubscrList.pSubscrList,
                                      sizeof(meshLocalCfgModelSubscrListEntry_t) * localCfgSubscrList.subscrListSize, NULL);
 
         return MESH_SUCCESS;
@@ -2677,7 +2818,7 @@ meshLocalCfgRetVal_t MeshLocalCfgRemoveVirtualAddrFromSubscrList(meshElementId_t
             localCfgSubscrList.pSubscrList[subscrIdx].subscrToLabelUuid = FALSE;
 
             /* Update Subscription List entry in NVM. */
-            WsfNvmWriteData(MESH_LOCAL_CFG_NVM_SUBSCR_DATASET_ID, (uint8_t *)localCfgSubscrList.pSubscrList,
+            WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_SUBSCR_DATASET_ID, (uint8_t *)localCfgSubscrList.pSubscrList,
                                          sizeof(meshLocalCfgModelSubscrListEntry_t) * localCfgSubscrList.subscrListSize, NULL);
 
             return MESH_SUCCESS;
@@ -2739,7 +2880,7 @@ meshLocalCfgRetVal_t MeshLocalCfgRemoveAllFromSubscrList(meshElementId_t element
     /* Update Subscription List in NVM. Sync as the Subscription list can be too large to send a
      * WSF message.
      */
-    WsfNvmWriteData(MESH_LOCAL_CFG_NVM_SUBSCR_DATASET_ID, (uint8_t *)localCfgSubscrList.pSubscrList,
+    WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_SUBSCR_DATASET_ID, (uint8_t *)localCfgSubscrList.pSubscrList,
                                  sizeof(meshLocalCfgModelSubscrListEntry_t) * localCfgSubscrList.subscrListSize, NULL);
 
     return MESH_SUCCESS;
@@ -3076,7 +3217,7 @@ void MeshLocalCfgSetDevKey(const uint8_t *pDevKey)
   memcpy(localCfg.deviceKey, pDevKey, MESH_KEY_SIZE_128);
 
   /* Update Local Cfg structure in NVM. */
-  WsfNvmWriteData(MESH_LOCAL_CFG_NVM_DATASET_ID, (uint8_t *)&localCfg, sizeof(localCfg), NULL);
+  WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_DATASET_ID, (uint8_t *)&localCfg, sizeof(localCfg), NULL);
 }
 
 /*************************************************************************************************/
@@ -3133,7 +3274,7 @@ meshLocalCfgRetVal_t MeshLocalCfgSetNetKey(uint16_t netKeyIndex, const uint8_t *
     localCfgNetKeyList.pNodeIdentityList[netKeyIdx] = MESH_NODE_IDENTITY_STOPPED;
 
     /* Update NetKey list in NVM. */
-    WsfNvmWriteData(MESH_LOCAL_CFG_NVM_NET_KEY_DATASET_ID, (uint8_t *)localCfgNetKeyList.pNetKeyList,
+    WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_NET_KEY_DATASET_ID, (uint8_t *)localCfgNetKeyList.pNetKeyList,
                                  sizeof(meshLocalCfgNetKeyListEntry_t) * localCfgNetKeyList.netKeyListSize, NULL);
 
     return MESH_SUCCESS;
@@ -3170,7 +3311,7 @@ meshLocalCfgRetVal_t MeshLocalCfgUpdateNetKey(uint16_t netKeyIndex, const uint8_
       localCfgNetKeyList.pNetKeyList[netKeyIdx].newKeyAvailable = TRUE;
 
       /* Update NetKey list in NVM. */
-      WsfNvmWriteData(MESH_LOCAL_CFG_NVM_NET_KEY_DATASET_ID, (uint8_t *)localCfgNetKeyList.pNetKeyList,
+      WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_NET_KEY_DATASET_ID, (uint8_t *)localCfgNetKeyList.pNetKeyList,
                       sizeof(meshLocalCfgNetKeyListEntry_t) * localCfgNetKeyList.netKeyListSize, NULL);
 
       return MESH_SUCCESS;
@@ -3234,7 +3375,7 @@ meshLocalCfgRetVal_t MeshLocalCfgRemoveNetKey(uint16_t netKeyIndex, bool_t remov
     }
 
     /* Update NetKey list in NVM. */
-    WsfNvmWriteData(MESH_LOCAL_CFG_NVM_NET_KEY_DATASET_ID, (uint8_t *)localCfgNetKeyList.pNetKeyList,
+    WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_NET_KEY_DATASET_ID, (uint8_t *)localCfgNetKeyList.pNetKeyList,
                                  sizeof(meshLocalCfgNetKeyListEntry_t) * localCfgNetKeyList.netKeyListSize, NULL);
 
     return MESH_SUCCESS;
@@ -3390,7 +3531,7 @@ meshLocalCfgRetVal_t MeshLocalCfgSetAppKey(uint16_t appKeyIndex, const uint8_t *
     localCfgAppKeyList.pAppKeyList[appKeyIdx].netKeyEntryIndex = MESH_INVALID_ENTRY_INDEX;
 
     /* Update AppKey list in NVM. */
-    WsfNvmWriteData(MESH_LOCAL_CFG_NVM_APP_KEY_DATASET_ID, (uint8_t *)localCfgAppKeyList.pAppKeyList,
+    WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_APP_KEY_DATASET_ID, (uint8_t *)localCfgAppKeyList.pAppKeyList,
                                  sizeof(meshLocalCfgAppKeyListEntry_t) * localCfgAppKeyList.appKeyListSize, NULL);
 
     return MESH_SUCCESS;
@@ -3426,7 +3567,7 @@ meshLocalCfgRetVal_t MeshLocalCfgUpdateAppKey(uint16_t appKeyIndex, const uint8_
       localCfgAppKeyList.pAppKeyList[appKeyIdx].newKeyAvailable = TRUE;
 
       /* Update AppKey list in NVM. */
-      WsfNvmWriteData(MESH_LOCAL_CFG_NVM_APP_KEY_DATASET_ID, (uint8_t *)localCfgAppKeyList.pAppKeyList,
+      WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_APP_KEY_DATASET_ID, (uint8_t *)localCfgAppKeyList.pAppKeyList,
                                    sizeof(meshLocalCfgAppKeyListEntry_t) * localCfgAppKeyList.appKeyListSize, NULL);
 
       return MESH_SUCCESS;
@@ -3479,7 +3620,7 @@ meshLocalCfgRetVal_t MeshLocalCfgRemoveAppKey(uint16_t appKeyIndex, bool_t remov
     }
 
     /* Update AppKey list in NVM. */
-    WsfNvmWriteData(MESH_LOCAL_CFG_NVM_APP_KEY_DATASET_ID, (uint8_t *)localCfgAppKeyList.pAppKeyList,
+    WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_APP_KEY_DATASET_ID, (uint8_t *)localCfgAppKeyList.pAppKeyList,
                                  sizeof(meshLocalCfgAppKeyListEntry_t) * localCfgAppKeyList.appKeyListSize, NULL);
 
     return MESH_SUCCESS;
@@ -3643,7 +3784,7 @@ meshLocalCfgRetVal_t MeshLocalCfgBindAppKeyToModel(meshElementId_t elementId,
         localCfgAppKeyBindList.pAppKeyBindList[freeIdx] = appKeyIdx;
 
         /* Update AppKey Bind list in NVM. */
-        WsfNvmWriteData(MESH_LOCAL_CFG_NVM_APP_KEY_BIND_DATASET_ID, (uint8_t *)localCfgAppKeyBindList.pAppKeyBindList,
+        WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_APP_KEY_BIND_DATASET_ID, (uint8_t *)localCfgAppKeyBindList.pAppKeyBindList,
                                      sizeof(uint16_t) * localCfgAppKeyBindList.appKeyBindListSize, NULL);
 
         return MESH_SUCCESS;
@@ -3702,7 +3843,7 @@ void MeshLocalCfgUnbindAppKeyFromModel(meshElementId_t elementId, const meshMode
           localCfgAppKeyBindList.pAppKeyBindList[keyBindIdx] = MESH_INVALID_ENTRY_INDEX;
 
           /* Update AppKey Bind list in NVM. */
-          WsfNvmWriteData(MESH_LOCAL_CFG_NVM_APP_KEY_BIND_DATASET_ID, (uint8_t *)localCfgAppKeyBindList.pAppKeyBindList,
+          WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_APP_KEY_BIND_DATASET_ID, (uint8_t *)localCfgAppKeyBindList.pAppKeyBindList,
                                        sizeof(uint16_t) * localCfgAppKeyBindList.appKeyBindListSize, NULL);
         }
       }
@@ -3885,7 +4026,7 @@ meshLocalCfgRetVal_t MeshLocalCfgBindAppKeyToNetKey(uint16_t appKeyIndex, uint16
       localCfgAppKeyList.pAppKeyList[appKeyIdx].netKeyEntryIndex = netKeyIdx;
 
       /* Update AppKey list in NVM. */
-      WsfNvmWriteData(MESH_LOCAL_CFG_NVM_APP_KEY_DATASET_ID, (uint8_t *)localCfgAppKeyList.pAppKeyList,
+      WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_APP_KEY_DATASET_ID, (uint8_t *)localCfgAppKeyList.pAppKeyList,
                                    sizeof(meshLocalCfgAppKeyListEntry_t) * localCfgAppKeyList.appKeyListSize, NULL);
 
       return MESH_SUCCESS;
@@ -3922,7 +4063,7 @@ meshLocalCfgRetVal_t MeshLocalCfgUnbindAppKeyToNetKey(uint16_t appKeyIndex, uint
         localCfgAppKeyList.pAppKeyList[appKeyIdx].netKeyEntryIndex = MESH_INVALID_ENTRY_INDEX;
 
         /* Update AppKey list in NVM. */
-        WsfNvmWriteData(MESH_LOCAL_CFG_NVM_APP_KEY_DATASET_ID, (uint8_t *)localCfgAppKeyList.pAppKeyList,
+        WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_APP_KEY_DATASET_ID, (uint8_t *)localCfgAppKeyList.pAppKeyList,
                                      sizeof(meshLocalCfgAppKeyListEntry_t) * localCfgAppKeyList.appKeyListSize, NULL);
 
         return MESH_SUCCESS;
@@ -4113,7 +4254,7 @@ void MeshLocalCfgSetDefaultTtl(uint8_t defaultTtl)
   localCfg.defaultTtl = defaultTtl;
 
   /* Update Local Cfg structure in NVM. */
-  WsfNvmWriteData(MESH_LOCAL_CFG_NVM_DATASET_ID, (uint8_t *)&localCfg, sizeof(localCfg), NULL);
+  WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_DATASET_ID, (uint8_t *)&localCfg, sizeof(localCfg), NULL);
 }
 
 /*************************************************************************************************/
@@ -4144,7 +4285,7 @@ void MeshLocalCfgSetRelayState(meshRelayStates_t relayState)
     localCfg.relayState = relayState;
 
     /* Update Local Cfg structure in NVM. */
-    WsfNvmWriteData(MESH_LOCAL_CFG_NVM_DATASET_ID, (uint8_t *)&localCfg, sizeof(localCfg), NULL);
+    WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_DATASET_ID, (uint8_t *)&localCfg, sizeof(localCfg), NULL);
   }
 }
 
@@ -4223,7 +4364,7 @@ void MeshLocalCfgSetBeaconState(meshBeaconStates_t beaconState)
     localCfg.beaconState = beaconState;
 
     /* Update Local Cfg structure in NVM. */
-    WsfNvmWriteData(MESH_LOCAL_CFG_NVM_DATASET_ID, (uint8_t *)&localCfg, sizeof(localCfg), NULL);
+    WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_DATASET_ID, (uint8_t *)&localCfg, sizeof(localCfg), NULL);
   }
 }
 
@@ -4255,7 +4396,7 @@ void MeshLocalCfgSetGattProxyState(meshGattProxyStates_t gattProxyState)
     localCfg.gattProxyState = gattProxyState;
 
     /* Update Local Cfg structure in NVM. */
-    WsfNvmWriteData(MESH_LOCAL_CFG_NVM_DATASET_ID, (uint8_t *)&localCfg, sizeof(localCfg), NULL);
+    WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_DATASET_ID, (uint8_t *)&localCfg, sizeof(localCfg), NULL);
   }
 }
 
@@ -4337,7 +4478,7 @@ void MeshLocalCfgSetFriendState(meshFriendStates_t friendState)
     localCfg.friendState = friendState;
 
     /* Update Local Cfg structure in NVM. */
-    WsfNvmWriteData(MESH_LOCAL_CFG_NVM_DATASET_ID, (uint8_t *)&localCfg, sizeof(localCfg), NULL);
+    WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_DATASET_ID, (uint8_t *)&localCfg, sizeof(localCfg), NULL);
   }
 }
 
@@ -4406,7 +4547,7 @@ void MeshLocalCfgSetKeyRefreshState(uint16_t netKeyIndex, meshKeyRefreshStates_t
     localCfgNetKeyList.pNetKeyList[netKeyIdx].keyRefreshState = keyRefreshState;
 
     /* Update NetKey list in NVM. */
-    WsfNvmWriteData(MESH_LOCAL_CFG_NVM_NET_KEY_DATASET_ID, (uint8_t *)localCfgNetKeyList.pNetKeyList,
+    WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_NET_KEY_DATASET_ID, (uint8_t *)localCfgNetKeyList.pNetKeyList,
                                  sizeof(meshLocalCfgNetKeyListEntry_t) * localCfgNetKeyList.netKeyListSize, NULL);
   }
 }
@@ -4464,7 +4605,7 @@ meshLocalCfgRetVal_t MeshLocalCfgSetHbPubDst(meshAddress_t dstAddress)
       localCfgHb.pubDstAddressIndex = MESH_INVALID_ENTRY_INDEX;
 
       /* Update Heartbeat structure in NVM. */
-      WsfNvmWriteData(MESH_LOCAL_CFG_NVM_HB_DATASET_ID, (uint8_t *)&localCfgHb, sizeof(localCfgHb), NULL);
+      WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_HB_DATASET_ID, (uint8_t *)&localCfgHb, sizeof(localCfgHb), NULL);
 
       return MESH_SUCCESS;
     }
@@ -4497,7 +4638,7 @@ meshLocalCfgRetVal_t MeshLocalCfgSetHbPubDst(meshAddress_t dstAddress)
     localCfgHb.pubDstAddressIndex = newAddrIdx;
 
     /* Update Heartbeat structure in NVM. */
-    WsfNvmWriteData(MESH_LOCAL_CFG_NVM_HB_DATASET_ID, (uint8_t *)&localCfgHb, sizeof(localCfgHb), NULL);
+    WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_HB_DATASET_ID, (uint8_t *)&localCfgHb, sizeof(localCfgHb), NULL);
 
     return MESH_SUCCESS;
   }
@@ -4539,7 +4680,7 @@ void MeshLocalCfgSetHbPubCountLog(uint8_t countLog)
   localCfgHb.pubCountLog = countLog;
 
   /* Update Heartbeat structure in NVM. */
-  WsfNvmWriteData(MESH_LOCAL_CFG_NVM_HB_DATASET_ID, (uint8_t *)&localCfgHb, sizeof(localCfgHb), NULL);
+  WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_HB_DATASET_ID, (uint8_t *)&localCfgHb, sizeof(localCfgHb), NULL);
 }
 
 /*************************************************************************************************/
@@ -4569,7 +4710,7 @@ void MeshLocalCfgSetHbPubPeriodLog(uint8_t periodLog)
   localCfgHb.pubPeriodLog = periodLog;
 
   /* Update Heartbeat structure in NVM. */
-  WsfNvmWriteData(MESH_LOCAL_CFG_NVM_HB_DATASET_ID, (uint8_t *)&localCfgHb, sizeof(localCfgHb), NULL);
+  WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_HB_DATASET_ID, (uint8_t *)&localCfgHb, sizeof(localCfgHb), NULL);
 }
 
 /*************************************************************************************************/
@@ -4598,7 +4739,7 @@ void MeshLocalCfgSetHbPubTtl(uint8_t pubTtl)
   localCfgHb.pubTtl = pubTtl;
 
   /* Update Heartbeat structure in NVM. */
-  WsfNvmWriteData(MESH_LOCAL_CFG_NVM_HB_DATASET_ID, (uint8_t *)&localCfgHb, sizeof(localCfgHb), NULL);
+  WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_HB_DATASET_ID, (uint8_t *)&localCfgHb, sizeof(localCfgHb), NULL);
 }
 
 /*************************************************************************************************/
@@ -4629,7 +4770,7 @@ void MeshLocalCfgSetHbPubFeatures(meshFeatures_t pubFeatures)
     localCfgHb.pubFeatures = pubFeatures;
 
     /* Update Heartbeat structure in NVM. */
-    WsfNvmWriteData(MESH_LOCAL_CFG_NVM_HB_DATASET_ID, (uint8_t *)&localCfgHb, sizeof(localCfgHb), NULL);
+    WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_HB_DATASET_ID, (uint8_t *)&localCfgHb, sizeof(localCfgHb), NULL);
   }
 }
 
@@ -4666,7 +4807,7 @@ meshLocalCfgRetVal_t MeshLocalCfgSetHbPubNetKeyIndex(uint16_t netKeyIndex)
     localCfgHb.pubNetKeyEntryIndex = netKeyIdx;
 
     /* Update Heartbeat structure in NVM. */
-    WsfNvmWriteData(MESH_LOCAL_CFG_NVM_HB_DATASET_ID, (uint8_t *)&localCfgHb, sizeof(localCfgHb), NULL);
+    WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_HB_DATASET_ID, (uint8_t *)&localCfgHb, sizeof(localCfgHb), NULL);
 
     return MESH_SUCCESS;
   }
@@ -4726,7 +4867,7 @@ meshLocalCfgRetVal_t MeshLocalCfgSetHbSubSrc(meshAddress_t srcAddress)
       localCfgHb.subSrcAddressIndex = MESH_INVALID_ENTRY_INDEX;
 
       /* Update Heartbeat structure in NVM. */
-      WsfNvmWriteData(MESH_LOCAL_CFG_NVM_HB_DATASET_ID, (uint8_t *)&localCfgHb, sizeof(localCfgHb), NULL);
+      WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_HB_DATASET_ID, (uint8_t *)&localCfgHb, sizeof(localCfgHb), NULL);
 
       return MESH_SUCCESS;
     }
@@ -4761,7 +4902,7 @@ meshLocalCfgRetVal_t MeshLocalCfgSetHbSubSrc(meshAddress_t srcAddress)
     localCfgHb.subSrcAddressIndex = newAddrIdx;
 
     /* Update Heartbeat structure in NVM. */
-    WsfNvmWriteData(MESH_LOCAL_CFG_NVM_HB_DATASET_ID, (uint8_t *)&localCfgHb, sizeof(localCfgHb), NULL);
+    WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_HB_DATASET_ID, (uint8_t *)&localCfgHb, sizeof(localCfgHb), NULL);
 
     return MESH_SUCCESS;
   }
@@ -4817,7 +4958,7 @@ meshLocalCfgRetVal_t MeshLocalCfgSetHbSubDst(meshAddress_t dstAddress)
       localCfgHb.subDstAddressIndex = MESH_INVALID_ENTRY_INDEX;
 
       /* Update Heartbeat structure in NVM. */
-      WsfNvmWriteData(MESH_LOCAL_CFG_NVM_HB_DATASET_ID, (uint8_t *)&localCfgHb, sizeof(localCfgHb), NULL);
+      WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_HB_DATASET_ID, (uint8_t *)&localCfgHb, sizeof(localCfgHb), NULL);
 
       return MESH_SUCCESS;
     }
@@ -4850,7 +4991,7 @@ meshLocalCfgRetVal_t MeshLocalCfgSetHbSubDst(meshAddress_t dstAddress)
     localCfgHb.subDstAddressIndex = newAddrIdx;
 
     /* Update Heartbeat structure in NVM. */
-    WsfNvmWriteData(MESH_LOCAL_CFG_NVM_HB_DATASET_ID, (uint8_t *)&localCfgHb, sizeof(localCfgHb), NULL);
+    WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_HB_DATASET_ID, (uint8_t *)&localCfgHb, sizeof(localCfgHb), NULL);
 
     return MESH_SUCCESS;
   }
@@ -4891,7 +5032,7 @@ void MeshLocalCfgSetHbSubCountLog(uint8_t countLog)
   localCfgHb.subCountLog = countLog;
 
   /* Update Heartbeat structure in NVM. */
-  WsfNvmWriteData(MESH_LOCAL_CFG_NVM_HB_DATASET_ID, (uint8_t *)&localCfgHb, sizeof(localCfgHb), NULL);
+  WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_HB_DATASET_ID, (uint8_t *)&localCfgHb, sizeof(localCfgHb), NULL);
 }
 
 /*************************************************************************************************/
@@ -4921,7 +5062,7 @@ void MeshLocalCfgSetHbSubPeriodLog(uint8_t periodLog)
   localCfgHb.subPeriodLog = periodLog;
 
   /* Update Heartbeat structure in NVM. */
-  WsfNvmWriteData(MESH_LOCAL_CFG_NVM_HB_DATASET_ID, (uint8_t *)&localCfgHb, sizeof(localCfgHb), NULL);
+  WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_HB_DATASET_ID, (uint8_t *)&localCfgHb, sizeof(localCfgHb), NULL);
 }
 
 /*************************************************************************************************/
@@ -4951,7 +5092,7 @@ void MeshLocalCfgSetHbSubMinHops(uint8_t minHops)
   localCfgHb.subMinHops = minHops;
 
   /* Update Heartbeat structure in NVM. */
-  WsfNvmWriteData(MESH_LOCAL_CFG_NVM_HB_DATASET_ID, (uint8_t *)&localCfgHb, sizeof(localCfgHb), NULL);
+  WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_HB_DATASET_ID, (uint8_t *)&localCfgHb, sizeof(localCfgHb), NULL);
 }
 
 /*************************************************************************************************/
@@ -4982,7 +5123,7 @@ void MeshLocalCfgSetHbSubMaxHops(uint8_t maxHops)
   localCfgHb.subMaxHops = maxHops;
 
   /* Update Heartbeat structure in NVM. */
-  WsfNvmWriteData(MESH_LOCAL_CFG_NVM_HB_DATASET_ID, (uint8_t *)&localCfgHb, sizeof(localCfgHb), NULL);
+  WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_HB_DATASET_ID, (uint8_t *)&localCfgHb, sizeof(localCfgHb), NULL);
 }
 
 /*************************************************************************************************/
@@ -5014,7 +5155,7 @@ void MeshLocalCfgSetNwkTransmitCount(uint8_t transCount)
   localCfg.nwkTransCount = transCount;
 
   /* Update Heartbeat structure in NVM. */
-  WsfNvmWriteData(MESH_LOCAL_CFG_NVM_DATASET_ID, (uint8_t *)&localCfg, sizeof(localCfg), NULL);
+  WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_DATASET_ID, (uint8_t *)&localCfg, sizeof(localCfg), NULL);
 }
 
 /*************************************************************************************************/
@@ -5045,7 +5186,7 @@ void MeshLocalCfgSetNwkTransmitIntvlSteps(uint8_t intvlSteps)
   localCfg.nwkIntvlSteps = intvlSteps;
 
   /* Update Heartbeat structure in NVM. */
-  WsfNvmWriteData(MESH_LOCAL_CFG_NVM_DATASET_ID, (uint8_t *)&localCfg, sizeof(localCfg), NULL);
+  WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_DATASET_ID, (uint8_t *)&localCfg, sizeof(localCfg), NULL);
 }
 
 /*************************************************************************************************/
@@ -5075,7 +5216,7 @@ void MeshLocalCfgSetRelayRetransmitCount(uint8_t retransCount)
   localCfg.relayRetransCount = retransCount;
 
   /* Update Heartbeat structure in NVM. */
-  WsfNvmWriteData(MESH_LOCAL_CFG_NVM_DATASET_ID, (uint8_t *)&localCfg, sizeof(localCfg), NULL);
+  WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_DATASET_ID, (uint8_t *)&localCfg, sizeof(localCfg), NULL);
 }
 
 /*************************************************************************************************/
@@ -5106,7 +5247,7 @@ void MeshLocalCfgSetRelayRetransmitIntvlSteps(uint8_t intvlSteps)
   localCfg.relayRetransIntvlSteps = intvlSteps;
 
   /* Update Heartbeat structure in NVM. */
-  WsfNvmWriteData(MESH_LOCAL_CFG_NVM_DATASET_ID, (uint8_t *)&localCfg, sizeof(localCfg), NULL);
+  WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_DATASET_ID, (uint8_t *)&localCfg, sizeof(localCfg), NULL);
 }
 
 /*************************************************************************************************/
@@ -5188,7 +5329,7 @@ void MeshLocalCfgSetSeqNumberThresh(meshElementId_t elementId, meshSeqNumber_t s
       ((seqNumber / MESH_SEQ_NUMBER_NVM_INC) + 1) * MESH_SEQ_NUMBER_NVM_INC;
 
     /* Save the next SEQ number threshold value to NVM. */
-    WsfNvmWriteData(MESH_LOCAL_CFG_NVM_SEQ_NUMBER_THRESH_DATASET_ID, (uint8_t *)localCfgElement.pSeqNumberThreshArray,
+    WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_SEQ_NUMBER_THRESH_DATASET_ID, (uint8_t *)localCfgElement.pSeqNumberThreshArray,
                                  sizeof(meshSeqNumber_t) * localCfgElement.elementArrayLen, NULL);
   }
 }
@@ -5245,7 +5386,7 @@ void MeshLocalCfgSetIvIndex(uint32_t ivIndex)
   localCfg.ivIndex = ivIndex;
 
   /* Update Local Cfg structure in NVM. */
-  WsfNvmWriteData(MESH_LOCAL_CFG_NVM_DATASET_ID, (uint8_t *)&localCfg, sizeof(localCfg), NULL);
+  WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_DATASET_ID, (uint8_t *)&localCfg, sizeof(localCfg), NULL);
 
   /* Signal event to the application. */
   evt.hdr.event = MESH_CORE_EVENT;
@@ -5270,7 +5411,7 @@ void MeshLocalCfgSetIvUpdateInProgress(bool_t ivUpdtInProg)
   localCfg.ivUpdtInProg = (ivUpdtInProg != FALSE) ? TRUE : FALSE;
 
   /* Update Local Cfg structure in NVM. */
-  WsfNvmWriteData(MESH_LOCAL_CFG_NVM_DATASET_ID, (uint8_t *)&localCfg, sizeof(localCfg), NULL);
+  WsfNvmWriteData((uint64_t)MESH_LOCAL_CFG_NVM_DATASET_ID, (uint8_t *)&localCfg, sizeof(localCfg), NULL);
 }
 
 /*************************************************************************************************/
@@ -5282,17 +5423,17 @@ void MeshLocalCfgSetIvUpdateInProgress(bool_t ivUpdtInProg)
 /*************************************************************************************************/
 void MeshLocalCfgEraseNvm(void)
 {
-  WsfNvmEraseData(MESH_LOCAL_CFG_NVM_DATASET_ID, NULL);
-  WsfNvmEraseData(MESH_LOCAL_CFG_NVM_NET_KEY_DATASET_ID, NULL);
-  WsfNvmEraseData(MESH_LOCAL_CFG_NVM_APP_KEY_DATASET_ID, NULL);
-  WsfNvmEraseData(MESH_LOCAL_CFG_NVM_APP_KEY_BIND_DATASET_ID, NULL);
-  WsfNvmEraseData(MESH_LOCAL_CFG_NVM_ADDRESS_DATASET_ID, NULL);
-  WsfNvmEraseData(MESH_LOCAL_CFG_NVM_VIRTUAL_ADDR_DATASET_ID, NULL);
-  WsfNvmEraseData(MESH_LOCAL_CFG_NVM_SUBSCR_DATASET_ID, NULL);
-  WsfNvmEraseData(MESH_LOCAL_CFG_NVM_SEQ_NUMBER_DATASET_ID, NULL);
-  WsfNvmEraseData(MESH_LOCAL_CFG_NVM_SEQ_NUMBER_THRESH_DATASET_ID, NULL);
-  WsfNvmEraseData(MESH_LOCAL_CFG_NVM_MODEL_DATASET_ID, NULL);
-  WsfNvmEraseData(MESH_LOCAL_CFG_NVM_HB_DATASET_ID, NULL);
+  WsfNvmEraseData((uint64_t)MESH_LOCAL_CFG_NVM_DATASET_ID, NULL);
+  WsfNvmEraseData((uint64_t)MESH_LOCAL_CFG_NVM_NET_KEY_DATASET_ID, NULL);
+  WsfNvmEraseData((uint64_t)MESH_LOCAL_CFG_NVM_APP_KEY_DATASET_ID, NULL);
+  WsfNvmEraseData((uint64_t)MESH_LOCAL_CFG_NVM_APP_KEY_BIND_DATASET_ID, NULL);
+  WsfNvmEraseData((uint64_t)MESH_LOCAL_CFG_NVM_ADDRESS_DATASET_ID, NULL);
+  WsfNvmEraseData((uint64_t)MESH_LOCAL_CFG_NVM_VIRTUAL_ADDR_DATASET_ID, NULL);
+  WsfNvmEraseData((uint64_t)MESH_LOCAL_CFG_NVM_SUBSCR_DATASET_ID, NULL);
+  WsfNvmEraseData((uint64_t)MESH_LOCAL_CFG_NVM_SEQ_NUMBER_DATASET_ID, NULL);
+  WsfNvmEraseData((uint64_t)MESH_LOCAL_CFG_NVM_SEQ_NUMBER_THRESH_DATASET_ID, NULL);
+  WsfNvmEraseData((uint64_t)MESH_LOCAL_CFG_NVM_MODEL_DATASET_ID, NULL);
+  WsfNvmEraseData((uint64_t)MESH_LOCAL_CFG_NVM_HB_DATASET_ID, NULL);
 }
 
 #if ((defined MESH_ENABLE_TEST) && (MESH_ENABLE_TEST==1))

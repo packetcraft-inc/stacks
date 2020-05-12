@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------
-* Copyright (C) 2010-2015 ARM Limited.
+* Copyright (C) 2010-2015 ARM Limited. All rights reserved.
 *
 * $Date:        20. October 2015
 * $Revision:    V1.4.5 b

@@ -86,9 +86,9 @@ __Vectors       DCD     __initial_sp              ; Top of Stack
                 ; External Interrupts
                 DCD     POWER_CLOCK_IRQHandler
                 DCD     RADIO_IRQHandler
-                DCD     UARTE0_IRQHandler
-                DCD     TWIM0_TWIS0_IRQHandler
-                DCD     SPIM0_SPIS0_IRQHandler
+                DCD     UARTE0_UART0_IRQHandler
+                DCD     TWIM0_TWIS0_TWI0_IRQHandler
+                DCD     SPIM0_SPIS0_SPI0_IRQHandler
                 DCD     0                         ; Reserved
                 DCD     GPIOTE_IRQHandler
                 DCD     SAADC_IRQHandler
@@ -211,6 +211,29 @@ Reset_Handler   PROC
                 IMPORT  SystemInit
                 IMPORT  __main
 
+                                ; Workaround for Errata 185 RAM: RAM corruption at extreme corners 
+                ; found at the Errata document for your device located
+                ; at https://infocenter.nordicsemi.com/index.jsp 
+                
+                LDR     R0, =0x10000130
+                LDR     R0, [R0]
+                LDR     R1, =0x10000134
+                LDR     R1, [R1]
+                
+                CMP     R0, #0xA
+                BNE     skip
+                CMP     R1, #0x0
+                BNE     skip
+                
+                LDR     R0, =0x40000EE4
+                LDR     R2, [R0]
+                LDR     R3, =0xFFFFFF8F
+                ANDS    R2, R2, R3
+                LDR     R3, =0x00000040
+                ORRS    R2, R2, R3
+                STR     R2, [R0]
+                
+skip
 
                 LDR     R0, =SystemInit
                 BLX     R0
@@ -266,9 +289,9 @@ Default_Handler PROC
 
                 EXPORT   POWER_CLOCK_IRQHandler [WEAK]
                 EXPORT   RADIO_IRQHandler [WEAK]
-                EXPORT   UARTE0_IRQHandler [WEAK]
-                EXPORT   TWIM0_TWIS0_IRQHandler [WEAK]
-                EXPORT   SPIM0_SPIS0_IRQHandler [WEAK]
+                EXPORT   UARTE0_UART0_IRQHandler [WEAK]
+                EXPORT   TWIM0_TWIS0_TWI0_IRQHandler [WEAK]
+                EXPORT   SPIM0_SPIS0_SPI0_IRQHandler [WEAK]
                 EXPORT   GPIOTE_IRQHandler [WEAK]
                 EXPORT   SAADC_IRQHandler [WEAK]
                 EXPORT   TIMER0_IRQHandler [WEAK]
@@ -293,9 +316,9 @@ Default_Handler PROC
                 EXPORT   PDM_IRQHandler [WEAK]
 POWER_CLOCK_IRQHandler
 RADIO_IRQHandler
-UARTE0_IRQHandler
-TWIM0_TWIS0_IRQHandler
-SPIM0_SPIS0_IRQHandler
+UARTE0_UART0_IRQHandler
+TWIM0_TWIS0_TWI0_IRQHandler
+SPIM0_SPIS0_SPI0_IRQHandler
 GPIOTE_IRQHandler
 SAADC_IRQHandler
 TIMER0_IRQHandler

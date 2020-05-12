@@ -1,7 +1,7 @@
 /**
- * Copyright (c) 2015 - 2018, Nordic Semiconductor ASA
+ * Copyright (c) 2015 - 2019, Nordic Semiconductor ASA
  *
- *
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -55,35 +55,27 @@ extern "C" {
  * @brief   Analog-to-Digital Converter (ADC) peripheral driver.
  */
 
-/**
- * @brief Driver event types.
- */
+/** @brief Driver event types. */
 typedef enum
 {
     NRFX_ADC_EVT_DONE,    ///< Event generated when the buffer is filled with samples.
     NRFX_ADC_EVT_SAMPLE,  ///< Event generated when the requested channel is sampled.
 } nrfx_adc_evt_type_t;
 
-/**
- * @brief Analog-to-digital converter driver DONE event.
- */
+/** @brief ADC driver DONE event structure. */
 typedef struct
 {
     nrf_adc_value_t * p_buffer; ///< Pointer to the buffer with converted samples.
     uint16_t          size;     ///< Number of samples in the buffer.
 } nrfx_adc_done_evt_t;
 
-/**
- * @brief Analog-to-digital converter driver SAMPLE event.
- */
+/** @brief SAMPLE event structure. */
 typedef struct
 {
     nrf_adc_value_t   sample; ///< Converted sample.
 } nrfx_adc_sample_evt_t;
 
-/**
- * @brief Analog-to-digital converter driver event.
- */
+/** @brief ADC driver event. */
 typedef struct
 {
     nrfx_adc_evt_type_t type;  ///< Event type.
@@ -91,10 +83,10 @@ typedef struct
     {
         nrfx_adc_done_evt_t   done;   ///< Data for DONE event.
         nrfx_adc_sample_evt_t sample; ///< Data for SAMPLE event.
-    } data;
+    } data;                           ///< Union to store event data.
 } nrfx_adc_evt_t;
 
-/**@brief Macro for initializing the ADC channel with the default configuration. */
+/** @brief Macro for initializing the ADC channel with the default configuration. */
 #define NRFX_ADC_DEFAULT_CHANNEL(analog_input)                 \
  {                                                             \
      NULL,                                                     \
@@ -107,7 +99,7 @@ typedef struct
      }                                                         \
  }
 
-// Forward declaration of the nrfx_adc_channel_t type.
+/** @brief Forward declaration of the nrfx_adc_channel_t type. */
 typedef struct nrfx_adc_channel_s nrfx_adc_channel_t;
 
 /**
@@ -122,9 +114,7 @@ struct nrfx_adc_channel_s
     nrf_adc_config_t     config; ///< ADC configuration for the current channel.
 };
 
-/**
- * @brief ADC configuration.
- */
+/** @brief ADC configuration. */
 typedef struct
 {
     uint8_t interrupt_priority; ///< Priority of ADC interrupt.
@@ -151,11 +141,11 @@ typedef void (*nrfx_adc_event_handler_t)(nrfx_adc_evt_t const * p_event);
  * If a valid event handler is provided, the driver is initialized in non-blocking mode.
  * If event_handler is NULL, the driver works in blocking mode.
  *
- * @param[in] p_config      Pointer to the structure with initial configuration.
+ * @param[in] p_config      Pointer to the structure with the initial configuration.
  * @param[in] event_handler Event handler provided by the user.
  *
- * @retval    NRFX_SUCCESS If initialization was successful.
- * @retval    NRFX_ERROR_INVALID_STATE If the driver is already initialized.
+ * @retval NRFX_SUCCESS             Initialization was successful.
+ * @retval NRFX_ERROR_INVALID_STATE The driver is already initialized.
  */
 nrfx_err_t nrfx_adc_init(nrfx_adc_config_t const * p_config,
                          nrfx_adc_event_handler_t  event_handler);
@@ -178,6 +168,8 @@ void nrfx_adc_uninit(void);
  *
  * @note The channel instance variable @p p_channel is used by the driver as an item
  *       in a list. Therefore, it cannot be an automatic variable that is located on the stack.
+ *
+ * @param[in] p_channel Pointer to the channel instance.
  */
 void nrfx_adc_channel_enable(nrfx_adc_channel_t * const p_channel);
 
@@ -186,6 +178,8 @@ void nrfx_adc_channel_enable(nrfx_adc_channel_t * const p_channel);
  *
  * This function can be called only when there is no conversion in progress
  * (the ADC is not busy).
+ *
+ * @param p_channel Pointer to the channel instance.
  */
 void nrfx_adc_channel_disable(nrfx_adc_channel_t * const p_channel);
 
@@ -215,11 +209,11 @@ void nrfx_adc_sample(void);
  * fail if ADC is busy. The channel does not need to be enabled to perform a single conversion.
  *
  * @param[in]  p_channel Channel.
- * @param[out] p_value   Pointer to the location where the result should be placed. Unless NULL is
+ * @param[out] p_value   Pointer to the location where the result is to be placed. Unless NULL is
  *                       provided, the function is blocking.
  *
- * @retval NRFX_SUCCESS    If conversion was successful.
- * @retval NRFX_ERROR_BUSY If the ADC driver is busy.
+ * @retval NRFX_SUCCESS    Conversion was successful.
+ * @retval NRFX_ERROR_BUSY The ADC driver is busy.
  */
 nrfx_err_t nrfx_adc_sample_convert(nrfx_adc_channel_t const * const p_channel,
                                    nrf_adc_value_t                * p_value);
@@ -250,16 +244,16 @@ nrfx_err_t nrfx_adc_sample_convert(nrfx_adc_channel_t const * const p_channel,
  * @param[in] buffer Result buffer.
  * @param[in] size   Buffer size in samples.
  *
- * @retval NRFX_SUCCESS    If conversion was successful.
- * @retval NRFX_ERROR_BUSY If the driver is busy.
+ * @retval NRFX_SUCCESS    Conversion was successful.
+ * @retval NRFX_ERROR_BUSY The driver is busy.
  */
 nrfx_err_t nrfx_adc_buffer_convert(nrf_adc_value_t * buffer, uint16_t size);
 
 /**
  * @brief Function for retrieving the ADC state.
  *
- * @retval true  If the ADC is busy.
- * @retval false If the ADC is ready.
+ * @retval true  The ADC is busy.
+ * @retval false The ADC is ready.
  */
 bool nrfx_adc_is_busy(void);
 
@@ -282,11 +276,11 @@ __STATIC_INLINE uint32_t nrfx_adc_start_task_get(void)
 
 #endif
 
+/** @} */
+
 
 void nrfx_adc_irq_handler(void);
 
-
-/** @} */
 
 #ifdef __cplusplus
 }

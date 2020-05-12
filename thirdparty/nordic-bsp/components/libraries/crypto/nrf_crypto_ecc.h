@@ -1,7 +1,7 @@
 /**
- * Copyright (c) 2018, Nordic Semiconductor ASA
+ * Copyright (c) 2018 - 2019, Nordic Semiconductor ASA
  *
- *
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -274,7 +274,6 @@ typedef uint8_t nrf_crypto_ecc_secp160r1_raw_public_key_t
     [NRF_CRYPTO_ECC_SECP160R1_RAW_PUBLIC_KEY_SIZE];                  /**< @brief Array holding raw public key for secp160r1 (NIST 160-bit) */
 
 
-#if NRF_CRYPTO_ECC_SECP160R1_ENABLED
 
 /** @brief Variable containing information on secp160r1 (NIST 160-bit).
  *
@@ -282,7 +281,6 @@ typedef uint8_t nrf_crypto_ecc_secp160r1_raw_public_key_t
  */
 extern const nrf_crypto_ecc_curve_info_t g_nrf_crypto_ecc_secp160r1_curve_info;
 
-#endif
 
 /** @} */
 
@@ -304,7 +302,6 @@ typedef uint8_t nrf_crypto_ecc_secp160r2_raw_public_key_t
     [NRF_CRYPTO_ECC_SECP160R2_RAW_PUBLIC_KEY_SIZE];                  /**< @brief Array holding raw public key for secp160r2 (NIST 160-bit) */
 
 
-#if NRF_CRYPTO_ECC_SECP160R2_ENABLED
 
 /** @brief Variable containing information on secp160r2 (NIST 160-bit).
  *
@@ -312,7 +309,6 @@ typedef uint8_t nrf_crypto_ecc_secp160r2_raw_public_key_t
  */
 extern const nrf_crypto_ecc_curve_info_t g_nrf_crypto_ecc_secp160r2_curve_info;
 
-#endif
 
 /** @} */
 
@@ -334,7 +330,6 @@ typedef uint8_t nrf_crypto_ecc_secp192r1_raw_public_key_t
     [NRF_CRYPTO_ECC_SECP192R1_RAW_PUBLIC_KEY_SIZE];                  /**< @brief Array holding raw public key for secp192r1 (NIST 192-bit) */
 
 
-#if NRF_CRYPTO_ECC_SECP192R1_ENABLED
 
 /** @brief Variable containing information on secp192r1 (NIST 192-bit).
  *
@@ -342,7 +337,6 @@ typedef uint8_t nrf_crypto_ecc_secp192r1_raw_public_key_t
  */
 extern const nrf_crypto_ecc_curve_info_t g_nrf_crypto_ecc_secp192r1_curve_info;
 
-#endif
 
 /** @} */
 
@@ -364,7 +358,6 @@ typedef uint8_t nrf_crypto_ecc_secp224r1_raw_public_key_t
     [NRF_CRYPTO_ECC_SECP224R1_RAW_PUBLIC_KEY_SIZE];                  /**< @brief Array holding raw public key for secp224r1 (NIST 224-bit) */
 
 
-#if NRF_CRYPTO_ECC_SECP224R1_ENABLED
 
 /** @brief Variable containing information on secp224r1 (NIST 224-bit).
  *
@@ -372,7 +365,6 @@ typedef uint8_t nrf_crypto_ecc_secp224r1_raw_public_key_t
  */
 extern const nrf_crypto_ecc_curve_info_t g_nrf_crypto_ecc_secp224r1_curve_info;
 
-#endif
 
 /** @} */
 
@@ -394,7 +386,6 @@ typedef uint8_t nrf_crypto_ecc_secp256r1_raw_public_key_t
     [NRF_CRYPTO_ECC_SECP256R1_RAW_PUBLIC_KEY_SIZE];                  /**< @brief Array holding raw public key for secp256r1 (NIST 256-bit) */
 
 
-#if NRF_CRYPTO_ECC_SECP256R1_ENABLED
 
 /** @brief Variable containing information on secp256r1 (NIST 256-bit).
  *
@@ -402,7 +393,6 @@ typedef uint8_t nrf_crypto_ecc_secp256r1_raw_public_key_t
  */
 extern const nrf_crypto_ecc_curve_info_t g_nrf_crypto_ecc_secp256r1_curve_info;
 
-#endif
 
 /** @} */
 
@@ -424,7 +414,6 @@ typedef uint8_t nrf_crypto_ecc_secp384r1_raw_public_key_t
     [NRF_CRYPTO_ECC_SECP384R1_RAW_PUBLIC_KEY_SIZE];                  /**< @brief Array holding raw public key for secp384r1 (NIST 384-bit) */
 
 
-#if NRF_CRYPTO_ECC_SECP384R1_ENABLED
 
 /** @brief Variable containing information on secp384r1 (NIST 384-bit).
  *
@@ -432,7 +421,6 @@ typedef uint8_t nrf_crypto_ecc_secp384r1_raw_public_key_t
  */
 extern const nrf_crypto_ecc_curve_info_t g_nrf_crypto_ecc_secp384r1_curve_info;
 
-#endif
 
 /** @} */
 
@@ -454,7 +442,6 @@ typedef uint8_t nrf_crypto_ecc_secp521r1_raw_public_key_t
     [NRF_CRYPTO_ECC_SECP521R1_RAW_PUBLIC_KEY_SIZE];                  /**< @brief Array holding raw public key for secp521r1 (NIST 521-bit) */
 
 
-#if NRF_CRYPTO_ECC_SECP521R1_ENABLED
 
 /** @brief Variable containing information on secp521r1 (NIST 521-bit).
  *
@@ -462,7 +449,6 @@ typedef uint8_t nrf_crypto_ecc_secp521r1_raw_public_key_t
  */
 extern const nrf_crypto_ecc_curve_info_t g_nrf_crypto_ecc_secp521r1_curve_info;
 
-#endif
 
 /** @} */
 
@@ -484,7 +470,6 @@ typedef uint8_t nrf_crypto_ecc_secp160k1_raw_public_key_t
     [NRF_CRYPTO_ECC_SECP160K1_RAW_PUBLIC_KEY_SIZE];                  /**< @brief Array holding raw public key for secp160k1 (Koblitz 160-bit) */
 
 
-#if NRF_CRYPTO_ECC_SECP160K1_ENABLED
 
 /** @brief Variable containing information on secp160k1 (Koblitz 160-bit).
  *
@@ -492,7 +477,6 @@ typedef uint8_t nrf_crypto_ecc_secp160k1_raw_public_key_t
  */
 extern const nrf_crypto_ecc_curve_info_t g_nrf_crypto_ecc_secp160k1_curve_info;
 
-#endif
 
 /** @} */
 
@@ -514,7 +498,6 @@ typedef uint8_t nrf_crypto_ecc_secp192k1_raw_public_key_t
     [NRF_CRYPTO_ECC_SECP192K1_RAW_PUBLIC_KEY_SIZE];                  /**< @brief Array holding raw public key for secp192k1 (Koblitz 192-bit) */
 
 
-#if NRF_CRYPTO_ECC_SECP192K1_ENABLED
 
 /** @brief Variable containing information on secp192k1 (Koblitz 192-bit).
  *
@@ -522,7 +505,6 @@ typedef uint8_t nrf_crypto_ecc_secp192k1_raw_public_key_t
  */
 extern const nrf_crypto_ecc_curve_info_t g_nrf_crypto_ecc_secp192k1_curve_info;
 
-#endif
 
 /** @} */
 
@@ -544,7 +526,6 @@ typedef uint8_t nrf_crypto_ecc_secp224k1_raw_public_key_t
     [NRF_CRYPTO_ECC_SECP224K1_RAW_PUBLIC_KEY_SIZE];                  /**< @brief Array holding raw public key for secp224k1 (Koblitz 224-bit) */
 
 
-#if NRF_CRYPTO_ECC_SECP224K1_ENABLED
 
 /** @brief Variable containing information on secp224k1 (Koblitz 224-bit).
  *
@@ -552,7 +533,6 @@ typedef uint8_t nrf_crypto_ecc_secp224k1_raw_public_key_t
  */
 extern const nrf_crypto_ecc_curve_info_t g_nrf_crypto_ecc_secp224k1_curve_info;
 
-#endif
 
 /** @} */
 
@@ -574,7 +554,6 @@ typedef uint8_t nrf_crypto_ecc_secp256k1_raw_public_key_t
     [NRF_CRYPTO_ECC_SECP256K1_RAW_PUBLIC_KEY_SIZE];                  /**< @brief Array holding raw public key for secp256k1 (Koblitz 256-bit) */
 
 
-#if NRF_CRYPTO_ECC_SECP256K1_ENABLED
 
 /** @brief Variable containing information on secp256k1 (Koblitz 256-bit).
  *
@@ -582,7 +561,6 @@ typedef uint8_t nrf_crypto_ecc_secp256k1_raw_public_key_t
  */
 extern const nrf_crypto_ecc_curve_info_t g_nrf_crypto_ecc_secp256k1_curve_info;
 
-#endif
 
 /** @} */
 
@@ -604,7 +582,6 @@ typedef uint8_t nrf_crypto_ecc_bp256r1_raw_public_key_t
     [NRF_CRYPTO_ECC_BP256R1_RAW_PUBLIC_KEY_SIZE];                    /**< @brief Array holding raw public key for bp256r1 (Brainpool 256-bit) */
 
 
-#if NRF_CRYPTO_ECC_BP256R1_ENABLED
 
 /** @brief Variable containing information on bp256r1 (Brainpool 256-bit).
  *
@@ -612,7 +589,6 @@ typedef uint8_t nrf_crypto_ecc_bp256r1_raw_public_key_t
  */
 extern const nrf_crypto_ecc_curve_info_t g_nrf_crypto_ecc_bp256r1_curve_info;
 
-#endif
 
 /** @} */
 
@@ -634,7 +610,6 @@ typedef uint8_t nrf_crypto_ecc_bp384r1_raw_public_key_t
     [NRF_CRYPTO_ECC_BP384R1_RAW_PUBLIC_KEY_SIZE];                    /**< @brief Array holding raw public key for bp384r1 (Brainpool 384-bit) */
 
 
-#if NRF_CRYPTO_ECC_BP384R1_ENABLED
 
 /** @brief Variable containing information on bp384r1 (Brainpool 384-bit).
  *
@@ -642,7 +617,6 @@ typedef uint8_t nrf_crypto_ecc_bp384r1_raw_public_key_t
  */
 extern const nrf_crypto_ecc_curve_info_t g_nrf_crypto_ecc_bp384r1_curve_info;
 
-#endif
 
 /** @} */
 
@@ -664,7 +638,6 @@ typedef uint8_t nrf_crypto_ecc_bp512r1_raw_public_key_t
     [NRF_CRYPTO_ECC_BP512R1_RAW_PUBLIC_KEY_SIZE];                    /**< @brief Array holding raw public key for bp512r1 (Brainpool 512-bit) */
 
 
-#if NRF_CRYPTO_ECC_BP512R1_ENABLED
 
 /** @brief Variable containing information on bp512r1 (Brainpool 512-bit).
  *
@@ -672,7 +645,6 @@ typedef uint8_t nrf_crypto_ecc_bp512r1_raw_public_key_t
  */
 extern const nrf_crypto_ecc_curve_info_t g_nrf_crypto_ecc_bp512r1_curve_info;
 
-#endif
 
 /** @} */
 
@@ -694,15 +666,12 @@ typedef uint8_t nrf_crypto_ecc_curve25519_raw_public_key_t
     [NRF_CRYPTO_ECC_CURVE25519_RAW_PUBLIC_KEY_SIZE];                 /**< @brief Array holding raw public key for Curve25519 */
 
 
-#if NRF_CRYPTO_ECC_CURVE25519_ENABLED
-
 /** @brief Variable containing information on Curve25519.
  *
  *  It can be used as a parameter for the functions creating Curve25519 keys.
  */
 extern const nrf_crypto_ecc_curve_info_t g_nrf_crypto_ecc_curve25519_curve_info;
 
-#endif
 
 /** @} */
 
@@ -724,7 +693,6 @@ typedef uint8_t nrf_crypto_ecc_ed25519_raw_public_key_t
     [NRF_CRYPTO_ECC_ED25519_RAW_PUBLIC_KEY_SIZE];                    /**< @brief Array holding raw public key for Ed25519 */
 
 
-#if NRF_CRYPTO_ECC_ED25519_ENABLED
 
 /** @brief Variable containing information on Ed25519.
  *
@@ -732,7 +700,6 @@ typedef uint8_t nrf_crypto_ecc_ed25519_raw_public_key_t
  */
 extern const nrf_crypto_ecc_curve_info_t g_nrf_crypto_ecc_ed25519_curve_info;
 
-#endif
 
 /** @} */
 

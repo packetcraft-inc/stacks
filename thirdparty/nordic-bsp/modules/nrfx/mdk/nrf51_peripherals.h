@@ -43,6 +43,10 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define _NRF51_PERIPHERALS_H
 
 
+/* Clock Peripheral */
+#define CLOCK_PRESENT
+#define CLOCK_COUNT 1
+
 /* Power Peripheral */
 #define POWER_PRESENT
 #define POWER_COUNT 1

@@ -1,7 +1,7 @@
 /**
- * Copyright (c) 2013 - 2018, Nordic Semiconductor ASA
+ * Copyright (c) 2013 - 2019, Nordic Semiconductor ASA
  *
- *
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -188,6 +188,15 @@ do                                                      \
  *       should be true if the module is initialized, false if not.
  */
 #define VERIFY_MODULE_INITIALIZED_VOID() VERIFY_TRUE_VOID((MODULE_INITIALIZED))
+
+
+/**@brief Macro for verifying that the module is initialized. It will cause the exterior function to
+ *        return false if not.
+ *
+ * @note MODULE_INITIALIZED must be defined in each module using this macro. MODULE_INITIALIZED
+ *       should be true if the module is initialized, false if not.
+ */
+#define VERIFY_MODULE_INITIALIZED_BOOL() VERIFY_TRUE((MODULE_INITIALIZED), false)
 
 
 /**@brief Macro for verifying that the module is initialized. It will cause the exterior function to

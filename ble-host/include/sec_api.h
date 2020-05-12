@@ -4,16 +4,16 @@
  *
  *  \brief  AES and random number security service API.
  *
- *  Copyright (c) 2010-2019 Arm Ltd.
+ *  Copyright (c) 2010-2019 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -39,6 +39,9 @@ extern "C" {
 
 /*! \brief CMAC algorithm key length. */
 #define SEC_CMAC_KEY_LEN              16
+
+/*! \brief CMAC algorithm key length. */
+#define SEC_AES_BLK_LEN               16
 
 /*! \brief CMAC algorithm result length. */
 #define SEC_CMAC_HASH_LEN             16

@@ -1,7 +1,7 @@
 /**
- * Copyright (c) 2015 - 2018, Nordic Semiconductor ASA
+ * Copyright (c) 2015 - 2019, Nordic Semiconductor ASA
  *
- *
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -42,7 +42,10 @@
 
 #if NRFX_CHECK(NRFX_TWIS_ENABLED)
 
-#if !(NRFX_CHECK(NRFX_TWIS0_ENABLED) || NRFX_CHECK(NRFX_TWIS1_ENABLED))
+#if !(NRFX_CHECK(NRFX_TWIS0_ENABLED) || \
+      NRFX_CHECK(NRFX_TWIS1_ENABLED) || \
+      NRFX_CHECK(NRFX_TWIS2_ENABLED) || \
+      NRFX_CHECK(NRFX_TWIS3_ENABLED))
 #error "No enabled TWIS instances. Check <nrfx_config.h>."
 #endif
 
@@ -486,6 +489,12 @@ nrfx_err_t nrfx_twis_init(nrfx_twis_t const *        p_instance,
         #if NRFX_CHECK(NRFX_TWIS1_ENABLED)
         nrfx_twis_1_irq_handler,
         #endif
+        #if NRFX_CHECK(NRFX_TWIS2_ENABLED)
+        nrfx_twis_2_irq_handler,
+        #endif
+        #if NRFX_CHECK(NRFX_TWIS3_ENABLED)
+        nrfx_twis_3_irq_handler,
+        #endif
     };
     if (nrfx_prs_acquire(p_reg,
             irq_handlers[p_instance->drv_inst_idx]) != NRFX_SUCCESS)
@@ -730,7 +739,7 @@ nrfx_err_t nrfx_twis_tx_prepare(nrfx_twis_t const * p_instance,
 
     nrf_twis_tx_prepare(p_instance->p_reg,
                         (uint8_t const *)p_buf,
-                        (nrf_twis_amount_t)size);
+                        size);
     err_code = NRFX_SUCCESS;
     NRFX_LOG_INFO("Function: %s, error code: %s.", __func__, NRFX_LOG_ERROR_STRING_GET(err_code));
     return err_code;
@@ -774,7 +783,7 @@ nrfx_err_t nrfx_twis_rx_prepare(nrfx_twis_t const * p_instance,
 
     nrf_twis_rx_prepare(p_instance->p_reg,
                         (uint8_t *)p_buf,
-                        (nrf_twis_amount_t)size);
+                        size);
     err_code = NRFX_SUCCESS;
     NRFX_LOG_INFO("Function: %s, error code: %s.", __func__, NRFX_LOG_ERROR_STRING_GET(err_code));
     return err_code;
@@ -828,6 +837,20 @@ void nrfx_twis_0_irq_handler(void)
 void nrfx_twis_1_irq_handler(void)
 {
     nrfx_twis_state_machine(NRF_TWIS1, &m_cb[NRFX_TWIS1_INST_IDX]);
+}
+#endif
+
+#if NRFX_CHECK(NRFX_TWIS2_ENABLED)
+void nrfx_twis_2_irq_handler(void)
+{
+    nrfx_twis_state_machine(NRF_TWIS2, &m_cb[NRFX_TWIS2_INST_IDX]);
+}
+#endif
+
+#if NRFX_CHECK(NRFX_TWIS3_ENABLED)
+void nrfx_twis_3_irq_handler(void)
+{
+    nrfx_twis_state_machine(NRF_TWIS3, &m_cb[NRFX_TWIS3_INST_IDX]);
 }
 #endif
 

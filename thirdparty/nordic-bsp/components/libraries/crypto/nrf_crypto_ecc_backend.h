@@ -1,7 +1,7 @@
 /**
- * Copyright (c) 2018, Nordic Semiconductor ASA
+ * Copyright (c) 2018 - 2019, Nordic Semiconductor ASA
  *
- *
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -56,6 +56,7 @@
 #include "mbedtls_backend_ecc.h"
 #include "oberon_backend_ecc.h"
 #include "micro_ecc_backend_ecc.h"
+#include "optiga_backend_ecc.h"
 
 
 #ifdef __cplusplus

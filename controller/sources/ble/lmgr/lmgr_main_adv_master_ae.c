@@ -4,16 +4,16 @@
  *
  *  \brief      Link manager extended scan implementation file.
  *
- *  Copyright (c) 2013-2018 Arm Ltd.
+ *  Copyright (c) 2013-2018 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -31,8 +31,6 @@
  *  \brief      Send extended scan enable confirm.
  *
  *  \param      status      Confirm status.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void LmgrSendExtScanEnableCnf(uint8_t status)
@@ -69,8 +67,6 @@ void LmgrSendExtScanEnableCnf(uint8_t status)
 /*************************************************************************************************/
 /*!
  *  \brief      Send scan timeout indication.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void LmgrSendScanTimeoutInd(void)
@@ -91,8 +87,6 @@ void LmgrSendScanTimeoutInd(void)
  *  \brief      Send extended advertising report indication.
  *
  *  \param      pEvt        Extended advertising report event.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void LmgrSendExtAdvRptInd(LlExtAdvReportInd_t *pEvt)
@@ -133,8 +127,6 @@ void LmgrSendPerAdvRptInd(LlPerAdvReportInd_t *pEvt)
  *  \param      status      Confirm status.
  *  \param      handle      Sync handle.
  *  \param      pEvt        Periodic advertising sync established event.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void LmgrSendSyncEstInd(uint8_t status, uint16_t handle, lmgrPerAdvSyncEstdInd_t *pEvt)
@@ -166,8 +158,6 @@ void LmgrSendSyncEstInd(uint8_t status, uint16_t handle, lmgrPerAdvSyncEstdInd_t
  *  \brief      Send periodic advertising sync lost event.
  *
  *  \param      handle      Sync handle.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void LmgrSendSyncLostInd(uint16_t handle)

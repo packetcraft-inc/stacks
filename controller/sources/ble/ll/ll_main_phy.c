@@ -4,16 +4,16 @@
  *
  *  \brief      Link layer (LL) PHY features control interface implementation file.
  *
- *  Copyright (c) 2016-2019 Arm Ltd.
+ *  Copyright (c) 2016-2019 Arm Ltd. All Rights Reserved.
  *
  *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -107,7 +107,7 @@ static uint8_t llValidatePhyPreferences(uint8_t allPhys, uint8_t txPhys, uint8_t
  *  \return     TRUE if all specified PHYs are supported.
  */
 /*************************************************************************************************/
-static bool_t llValidatePhySupport(uint8_t txPhys, uint8_t rxPhys)
+bool_t llValidatePhySupport(uint8_t txPhys, uint8_t rxPhys)
 {
   if (((lmgrCb.features & LL_FEAT_LE_2M_PHY) == 0) &&
       ((txPhys & LL_PHYS_LE_2M_BIT) || (rxPhys & LL_PHYS_LE_2M_BIT)))
@@ -123,6 +123,7 @@ static bool_t llValidatePhySupport(uint8_t txPhys, uint8_t rxPhys)
 
   return TRUE;
 }
+
 
 /*************************************************************************************************/
 /*!

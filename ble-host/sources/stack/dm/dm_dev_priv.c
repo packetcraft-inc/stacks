@@ -4,16 +4,16 @@
  *
  *  \brief  Device manager device privacy module.
  *
- *  Copyright (c) 2009-2019 Arm Ltd.
+ *  Copyright (c) 2009-2019 Arm Ltd. All Rights Reserved.
  *
  *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -515,9 +515,9 @@ void dmDevPrivActCtrl(dmDevPrivMsg_t *pMsg)
       WSF_ASSERT(pMsg->privCtrl.advHandle < DM_NUM_ADV_SETS);
 
       /* clear advertising set */
-      /* note: advertising handle is checked before reaching this function */
-      /* coverity[overrun-buffer-arg] */
-      memset(&dmDevPrivCb.extAdv[pMsg->privCtrl.advHandle], 0, sizeof(dmDevPrivExtAdv_t));
+      dmDevPrivCb.extAdv[pMsg->privCtrl.advHandle].configured = FALSE;
+      dmDevPrivCb.extAdv[pMsg->privCtrl.advHandle].connectable = FALSE;
+      dmDevPrivCb.extAdv[pMsg->privCtrl.advHandle].advertising = FALSE;
       break;
 
     case DM_DEV_PRIV_MSG_ADV_SETS_CLEAR:
@@ -606,10 +606,14 @@ void dmDevPrivReset(void)
 /*************************************************************************************************/
 void DmDevPrivInit(void)
 {
+  WsfTaskLock();
+
   dmFcnIfTbl[DM_ID_DEV_PRIV] = (dmFcnIf_t *) &dmDevPrivFcnIf;
 
   /* initialize set advertising set random address callback */
   dmDevCb.advSetRandAddrCback = NULL;
+
+  WsfTaskUnlock();
 }
 
 /*************************************************************************************************/

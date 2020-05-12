@@ -4,16 +4,16 @@
  *
  *  \brief  Byte stream to integer conversion functions.
  *
- *  Copyright (c) 2009-2018 Arm Ltd.
+ *  Copyright (c) 2009-2018 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -52,8 +52,6 @@ uint64_t BstreamToUint64(const uint8_t *p)
  *
  *  \param  p       Bstream pointer.
  *  \param  n       uint64_t number.
- *
- *  \return None.
  */
 /*************************************************************************************************/
 void Uint64ToBstream(uint8_t *p, uint64_t n)
@@ -93,8 +91,6 @@ uint64_t BstreamToBda64(const uint8_t *p)
  *
  *  \param  p       Bstream pointer.
  *  \param  bda     uint64_t BDA.
- *
- *  \return None.
  */
 /*************************************************************************************************/
 void Bda64ToBstream(uint8_t *p, uint64_t bda)

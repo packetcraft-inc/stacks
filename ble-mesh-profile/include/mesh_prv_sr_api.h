@@ -4,16 +4,16 @@
  *
  *  \brief  Provisioning Server API.
  *
- *  Copyright (c) 2010-2019 Arm Ltd.
+ *  Copyright (c) 2010-2019 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -97,8 +97,7 @@ typedef struct meshPrvSrUnprovisionedDeviceInfo_tag
                                                     *   (size of the array pointed by pUriData)
                                                     */
   uint8_t                      *pUriData;          /*!< Pointer to URI data */
-  meshPrvEccKeys_t             *pAppEccKeys;       /*!< The ECC key pair provided by the application,
-                                                    *   or NULL if keys must be generated internally. */
+  meshPrvEccKeys_t             *pAppOobEccKeys;    /*!< The OOB ECC key pair provided by the application. */
 } meshPrvSrUnprovisionedDeviceInfo_t;
 
 /*! \brief Parameters structure for ::MESH_PRV_SR_OUTPUT_OOB_EVENT event */

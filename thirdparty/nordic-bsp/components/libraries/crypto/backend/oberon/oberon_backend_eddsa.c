@@ -1,7 +1,7 @@
 /**
- * Copyright (c) 2018, Nordic Semiconductor ASA
+ * Copyright (c) 2018 - 2019, Nordic Semiconductor ASA
  *
- *
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -52,7 +52,7 @@
 #include "nrf_crypto_ecc.h"
 #include "nrf_crypto_rng.h"
 #include "nrf_crypto_eddsa.h"
-#include "occ_ed25519.h"
+#include "ocrypto_ed25519.h"
 
 
 ret_code_t nrf_crypto_backend_ed25519_sign(
@@ -62,11 +62,11 @@ ret_code_t nrf_crypto_backend_ed25519_sign(
     size_t                                  message_size,
     uint8_t                               * p_signature)
 {
-    occ_ed25519_sign(p_signature,
-                     p_message,
-                     message_size,
-                     p_private_key->key_ed25519.private_part,
-                     p_private_key->key_ed25519.public_part);
+    ocrypto_ed25519_sign(p_signature,
+                         p_message,
+                         message_size,
+                         p_private_key->key_ed25519.private_part,
+                         p_private_key->key_ed25519.public_part);
 
     return NRF_SUCCESS;
 }
@@ -80,10 +80,10 @@ ret_code_t nrf_crypto_backend_ed25519_verify(
 {
     int result;
 
-    result = occ_ed25519_verify(p_signature,
-                                p_message,
-                                message_size,
-                                p_public_key->key_ed25519.key);
+    result = ocrypto_ed25519_verify(p_signature,
+                                    p_message,
+                                    message_size,
+                                    p_public_key->key_ed25519.key);
 
     if (result != 0)
     {

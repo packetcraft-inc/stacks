@@ -2,6 +2,8 @@
 @page nrf51_series_drivers nRF51 Series Drivers
 @{
 
+@ref nrf_aar
+
 @ref nrf_adc
 
 @ref nrf_ccm
@@ -10,11 +12,15 @@
 
 @ref nrf_ecb
 
+@ref nrf_ficr
+
 @ref nrf_gpio
 
 @ref nrf_gpiote
 
 @ref nrf_lpcomp
+
+@ref nrf_mpu
 
 @ref nrf_nvmc
 

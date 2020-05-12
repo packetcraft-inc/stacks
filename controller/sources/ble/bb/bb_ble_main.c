@@ -4,16 +4,16 @@
  *
  *  \brief      Generic BLE baseband driver implementation file.
  *
- *  Copyright (c) 2016-2018 Arm Ltd.
+ *  Copyright (c) 2016-2018 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -40,8 +40,6 @@ bbBleCtrlBlk_t bbBleCb;               /*!< BB BLE control block. */
 /*************************************************************************************************/
 /*!
  *  \brief      Start BB processing of BLE protocol.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 static void bbBleStartBle(void)
@@ -53,8 +51,6 @@ static void bbBleStartBle(void)
 /*************************************************************************************************/
 /*!
  *  \brief      Start BB processing of BLE protocol.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 static void bbBleStopBle(void)
@@ -65,8 +61,6 @@ static void bbBleStopBle(void)
 /*************************************************************************************************/
 /*!
  *  \brief      Start BB processing of BLE DTM protocol.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 static void bbBleStartBleDtm(void)
@@ -78,8 +72,6 @@ static void bbBleStartBleDtm(void)
 /*************************************************************************************************/
 /*!
  *  \brief      Start BB processing of PRBS15 protocol.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 static void bbBleStartPrbs15(void)
@@ -92,8 +84,6 @@ static void bbBleStartPrbs15(void)
 /*************************************************************************************************/
 /*!
  *  \brief      Start BB processing of PRBS15 protocol.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 static void bbBleStopPrbs15(void)
@@ -107,8 +97,6 @@ static void bbBleStopPrbs15(void)
  *  \brief      Execute operation.
  *
  *  \param      pBod    Pointer to the BOD to execute.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 static void bbBleExecOp(BbOpDesc_t *pBod)
@@ -128,8 +116,6 @@ static void bbBleExecOp(BbOpDesc_t *pBod)
  *  \brief      Cancel operation.
  *
  *  \param      pBod    Pointer to the BOD to cancel.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 static void bbBleCancelOp(BbOpDesc_t *pBod)
@@ -143,11 +129,21 @@ static void bbBleCancelOp(BbOpDesc_t *pBod)
     bbBleCb.opCbacks[pBle->chan.opType].cancelOpCback(pBod, pBle);
   }
 }
+
+/*************************************************************************************************/
+/*!
+ *  \brief      Low power operation.
+ *
+ */
+/*************************************************************************************************/
+static void bbBleLowPower(void)
+{
+  PalBbBleLowPower();
+}
+
 /*************************************************************************************************/
 /*!
  *  \brief      Initialize the BLE BB.
- *
- *  \return     None.
  *
  *  Initialize baseband resources.
  */
@@ -158,6 +154,7 @@ void BbBleInit(void)
   BbRegisterProt(BB_PROT_BLE,     bbBleExecOp, bbBleCancelOp, bbBleStartBle,    bbBleStopBle);
   BbRegisterProt(BB_PROT_BLE_DTM, bbBleExecOp, bbBleCancelOp, bbBleStartBleDtm, bbBleStopBle);
   BbRegisterProt(BB_PROT_PRBS15,  NULL,        bbBleCancelOp, bbBleStartPrbs15, bbBleStopPrbs15);
+  BbRegisterProtLowPower(BB_PROT_BLE, bbBleLowPower);
 
   memset(&bbBleCb, 0, sizeof(bbBleCb));
 }
@@ -169,8 +166,6 @@ void BbBleInit(void)
  *  \param      opType          Operation type.
  *  \param      execOpCback     Execute operation callback.
  *  \param      cancelOpCback   Cancel operation callback.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void bbBleRegisterOp(uint8_t opType, bbBleExecOpFn_t execOpCback, bbBleExecOpFn_t cancelOpCback)

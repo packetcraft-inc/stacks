@@ -4,16 +4,16 @@
  *
  *  \brief      Link layer constant definitions.
  *
- *  Copyright (c) 2013-2019 Arm Ltd.
+ *  Copyright (c) 2013-2019 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -42,10 +42,8 @@ extern "C" {
 #define LL_VER_BT_CORE_SPEC_4_2     0x08    /*!< Bluetooth core specification 4.2 */
 #define LL_VER_BT_CORE_SPEC_5_0     0x09    /*!< Bluetooth core specification 5.0 */
 #define LL_VER_BT_CORE_SPEC_5_1     0x0A    /*!< Bluetooth core specification 5.1 */
-#define LL_VER_BT_CORE_SPEC_MILAN   0x0B    /*!< Bluetooth core specification Milan */
+#define LL_VER_BT_CORE_SPEC_5_2     0x0B    /*!< Bluetooth core specification 5.2 */
 #define LL_VER_BT_CORE_SPEC_SYDNEY  0x0C    /*!< Bluetooth core specification Sydney */
-
-#define LL_COMP_ID_ARM              0x005F  /*!< ARM Ltd. company ID. */
 
 /*** Common ***/
 
@@ -121,6 +119,7 @@ enum
 #define LL_ADV_HDR_TYPE_MSK     0x0F    /*!< Advertising header type mask. */
 #define LL_ADV_HDR_LEN_OFFS     1       /*!< Advertising header length offset. */
 #define LL_ADV_HDR_LEN_MSK      0x3F    /*!< Advertising header length mask for 4.2. */
+#define LL_ADV_HDR_CP_MSK       0x40    /*!< Advertising header CP Mask for 5.1. */
 #define LL_ADV_EXT_HDR_LEN_MSK  0xFF    /*!< Advertising extension header length mask for 5.0. */
 #define LL_ADV_PREFIX_LEN       6       /*!< Advertising PDU payload prefix length (AdvA). */
 #define LL_SCAN_PREFIX_LEN      6       /*!< Scan request/response PDU payload prefix length (AdvA). */
@@ -222,20 +221,24 @@ enum
   LL_PDU_PHY_UPDATE_IND         = 0x18, /*!< PHY update indication PDU. */
   LL_PDU_MIN_USED_CHAN_IND      = 0x19, /*!< Minimum used channels indication PDU. */
   /* --- Core Spec 5.1 --- */
-  // 0x1A 0x1B for AOA AOD, 0x1C for PAST 0x20 RFU
+  /* 0x1A 0x1B for AOA AOD, 0x1C for PAST 0x20 RFU */
   LL_PDU_PERIODIC_SYNC_IND      = 0x1C, /*!< Periodic sync indication PDU. */
-  /* --- Core Spec Milan --- */
+  /* --- Core Spec 5.2 --- */
   LL_PDU_PEER_SCA_REQ           = 0x1D, /*!< Peer SCA request PDU. */
   LL_PDU_PEER_SCA_RSP           = 0x1E, /*!< Peer SCA response PDU. */
   LL_PDU_CIS_REQ                = 0x1F, /*!< CIS request PDU. */
-  LL_PDU_CIS_RSP                = 0x21, /*!< CIS response PDU. */
-  LL_PDU_CIS_IND                = 0x22, /*!< CIS indication PDU. */
-  LL_PDU_CIS_TERM_IND           = 0x23, /*!< CIS terminate indication PDU. */
+  LL_PDU_CIS_RSP                = 0x20, /*!< CIS response PDU. */
+  LL_PDU_CIS_IND                = 0x21, /*!< CIS indication PDU. */
+  LL_PDU_CIS_TERM_IND           = 0x22, /*!< CIS terminate indication PDU. */
+  LL_PDU_PWR_CTRL_REQ           = 0x23, /*!< Power Control request. */
+  LL_PDU_PWR_CTRL_RSP           = 0x24, /*!< Power Control response. */
+  LL_PDU_PWR_CHNG_IND           = 0x25, /*!< Transmit power change indication PDU. */
 
   LL_PDU_UNSPECIFIED            = 0xFF  /*!< Unspecified PDU. */
 };
 
 /* Data PDU length */
+
 /* --- Core Spec 4.0 --- */
 #define LL_CONN_UPD_IND_PDU_LEN       12      /*!< Connection update indication PDU length. */
 #define LL_CHAN_MAP_IND_PDU_LEN       8       /*!< Channel map indication PDU length. */
@@ -259,19 +262,23 @@ enum
 #define LL_MIN_USED_CHAN_PDU_LEN      3       /*!< Minimum used channels indication PDU length. */
 /* --- Core Spec 5.1 --- */
 #define LL_PERIODIC_SYNC_PDU_LEN      35      /*!< Periodic sync indication PDU length. */
-/* --- Core Spec Milan --- */
+/* --- Core Spec 5.2 --- */
 #define LL_PEER_SCA_REQ_LEN           2       /*!< Peer SCA request PDU length. */
 #define LL_PEER_SCA_RSP_LEN           2       /*!< Peer SCA response PDU length. */
-#define LL_CIS_REQ_LEN                34      /*!< CIS request PDU length. */
+#define LL_CIS_REQ_LEN                36      /*!< CIS request PDU length. */
 #define LL_CIS_RSP_LEN                9       /*!< CIS response PDU length. */
 #define LL_CIS_IND_LEN                16      /*!< CIS indication PDU length. */
 #define LL_CIS_TERM_LEN               4       /*!< CIS termination PDU length. */
 #define LL_CIS_SDU_CONFIG_REQ_LEN     13      /*!< CIS SDU config request PDU length. */
 #define LL_CIS_SDU_CONFIG_RSP_LEN     4       /*!< CIS SDU config response PDU length. */
+#define LL_PWR_CTRL_REQ_LEN           4       /*!< Power Control request PDU length. */
+#define LL_PWR_CTRL_RSP_LEN           5       /*!< Power Control response PDU length. */
+#define LL_PWR_CHNG_IND_LEN           5       /*!< Power Indication PDU length. */
 
 #define LL_EMPTY_PDU_LEN              2       /*!< Length of an empty data PDU. */
 
 #define LL_DATA_HDR_LEN               2       /*!< Data channel header length. */
+#define LL_DATA_HDR_MAX_LEN           4       /*!< Data channel header max length (with CTE field). */
 #define LL_DATA_MIC_LEN               4       /*!< Data channel PDU MIC length. */
 
 #define LL_DATA_HDR_LLID_MSK          0x03    /*!< Data PDU LLID mask. */
@@ -280,21 +287,15 @@ enum
 #define LL_MAX_NUM_CHAN_DATA          37      /*!< Maximum number of used data channels. */
 #define LL_MIN_NUM_CHAN_DATA          2       /*!< Minimum number of used data channels. */
 
-#define LL_ISO_DATA_HDR_LEN           2       /*!< ISO data PDU header length. */
-#define LL_ISO_DATA_MIC_LEN           4       /*!< ISO data PDU MIC length. */
-
-#define LL_ISO_DATA_HDR_LLID_MSK      0x03    /*!< ISO data PDU LLID mask. */
-#define LL_ISO_DATA_HDR_LEN_MSK       0xFF    /*!< ISO Data header length mask. */
-
 /*! \brief      Data PDU LLID types. */
 enum
 {
-  LL_LLID_VS_PDU                = 0x00, /*!< Vendor specific PDU. */
+  LL_LLID_VS_PDU                    = 0x00,   /*!< Vendor specific PDU. */
   /* N.B. next two enumerations intentionally use identical values. */
-  LL_LLID_EMPTY_PDU             = 0x01, /*!< Empty PDU. */
-  LL_LLID_CONT_PDU              = 0x01, /*!< Data PDU: continuation fragment of an L2CAP message. */
-  LL_LLID_START_PDU             = 0x02, /*!< Data PDU: start of an L2CAP message or a complete L2CAP message with no fragmentation. */
-  LL_LLID_CTRL_PDU              = 0x03, /*!< Control PDU. */
+  LL_LLID_EMPTY_PDU                 = 0x01,   /*!< Empty PDU. */
+  LL_LLID_CONT_PDU                  = 0x01,   /*!< Data PDU: continuation fragment of an L2CAP message. */
+  LL_LLID_START_PDU                 = 0x02,   /*!< Data PDU: start of an L2CAP message or a complete L2CAP message with no fragmentation. */
+  LL_LLID_CTRL_PDU                  = 0x03,   /*!< Control PDU. */
 };
 
 /*** Encryption ***/
@@ -307,18 +308,21 @@ enum
 #define LL_KEY_LEN                    16      /*!< Encryption key length. */
 #define LL_SKD_LEN                    LL_KEY_LEN      /*!< Session key diversifier length. */
 #define LL_IV_LEN                     8       /*!< Initialization vector length. */
+#define LL_BC_LEN                     LL_KEY_LEN      /*!< Broadcast code length. */
+#define LL_GIV_LEN                    8       /*!< GIV length. */
+#define LL_GSKD_LEN                   16      /*!< GSKD code length. */
 
 #define LL_DEF_AUTH_TO_MS             30000   /*!< Default authentication timeout in milliseconds. */
 
 /*** LLCP ***/
 
-#define LL_DATA_LEN_TO_TIME_1M(len)       ((LL_BLE_US_PER_BYTE_1M * ((len) + LL_DATA_MIC_LEN)) + LL_MIN_PKT_TIME_US_1M)
+#define LL_DATA_LEN_TO_TIME_1M(len, enc)        ((LL_BLE_US_PER_BYTE_1M * ((len) + ((enc) ? LL_DATA_MIC_LEN : 0))) + LL_MIN_PKT_TIME_US_1M)
                                               /*!< Convert data length to time. */
-#define LL_DATA_LEN_TO_TIME_2M(len)       ((LL_BLE_US_PER_BYTE_2M * ((len) + LL_DATA_MIC_LEN)) + LL_MIN_PKT_TIME_US_2M)
+#define LL_DATA_LEN_TO_TIME_2M(len, enc)        ((LL_BLE_US_PER_BYTE_2M * ((len) + ((enc) ? LL_DATA_MIC_LEN : 0))) + LL_MIN_PKT_TIME_US_2M)
                                               /*!< Convert data length to time. */
-#define LL_DATA_LEN_TO_TIME_CODED_S8(len) ((LL_BLE_US_PER_BYTE_CODED_S8 * ((len) + LL_DATA_MIC_LEN)) + LL_MIN_PKT_TIME_US_CODED_S8)
+#define LL_DATA_LEN_TO_TIME_CODED_S8(len, enc)  ((LL_BLE_US_PER_BYTE_CODED_S8 * ((len) + ((enc) ? LL_DATA_MIC_LEN : 0))) + LL_MIN_PKT_TIME_US_CODED_S8)
                                               /*!< Convert data length to time. */
-#define LL_DATA_LEN_TO_TIME_CODED_S2(len) ((LL_BLE_US_PER_BYTE_CODED_S2 * ((len) + LL_DATA_MIC_LEN)) + LL_MIN_PKT_TIME_US_CODED_S2)
+#define LL_DATA_LEN_TO_TIME_CODED_S2(len, enc)  ((LL_BLE_US_PER_BYTE_CODED_S2 * ((len) + ((enc) ? LL_DATA_MIC_LEN : 0))) + LL_MIN_PKT_TIME_US_CODED_S2)
                                               /*!< Convert data length to time. */
 
 #define LL_MIN_INSTANT                6       /*!< Minimum number of CE to apply a CONN_UPD or CHAN_MAP. */
@@ -330,7 +334,7 @@ enum
 
 #define LL_MAX_DATA_TIME_MIN          328     /*!< Minimum value for maximum Data PDU time */
 #define LL_MAX_DATA_TIME_ABS_MAX      17040   /*!< Absolute maximum limit for maximum Data PDU time */
-#define LL_MAX_DATA_TIME_ABS_MAX_1M   2120    /*!< Absolute maximum limit for maximum Data PDU time (LE 1M PHY) */
+#define LL_MAX_DATA_TIME_ABS_MAX_1M   2128    /*!< Absolute maximum limit for maximum Data PDU time (LE 1M PHY) */
 #define LL_MAX_DATA_TIME_ABS_MIN_CODED  2704  /*!< Absolute minimum limit for maximum Data PDU time (CODED PHY) */
 
 #define LL_T_PRT_SEC                  40      /*!< LLCP procedure response timeout in seconds. */
@@ -355,7 +359,14 @@ enum
 #define LL_ALL_PHYS_MSK               0x7     /*!< All supported LE PHYs mask. */
 
 /*** ISO ***/
-#define LL_MAX_ISO_DATA_LEN_ABS_MAX   251     /*!< Absolute maximum limit for maximum ISO Data PDU length */
+
+#define LL_ISO_DATA_HDR_LEN           2       /*!< ISO Data PDU header length. */
+#define LL_ISO_DATA_PLD_MAX_LEN       251     /*!< Maximum ISO Data PDU payload length */
+#define LL_ISO_PDU_MAX_LEN            (HCI_ISO_HDR_LEN + BB_DATA_PLD_MAX_LEN + BB_DATA_PDU_TAILROOM)
+                                              /*!< Maximum ISO Data PDU length. */
+
+#define LL_ISO_SEG_HDR_LEN            2       /*!< Segmentation header length. */
+#define LL_ISO_SEG_TO_LEN             3       /*!< Segmentation Time Offset length. */
 
 #define LL_MAX_CIS_COUNT              0x10    /*!< Maximum count for CIS. */
 
@@ -365,8 +376,8 @@ enum
 #define LL_MIN_CIS_ID                 0x00    /*!< Minimum value for CIS ID. */
 #define LL_MAX_CIS_ID                 0xEF    /*!< Maximum value for CIS ID. */
 
-#define LL_MIN_ISO_INTERV             0x0004   /*!< Minimum value for ISO interval. */
-#define LL_MAX_ISO_INTERV             0x0C80   /*!< Maximum value for ISO interval. */
+#define LL_MIN_ISO_INTERV             0x0004  /*!< Minimum value for ISO interval. */
+#define LL_MAX_ISO_INTERV             0x0C80  /*!< Maximum value for ISO interval. */
 
 #define LL_MIN_ISOAL_PDU_TYPE         0x00    /*!< Minimum value for ISOAL PDU type. */
 #define LL_MAX_ISOAL_PDU_TYPE         0x01    /*!< Maximum value for ISOAL PDU type. */
@@ -377,11 +388,14 @@ enum
 #define LL_MIN_SDU_INTERV             0x000FF /*!< Minimum value for SDU interval. */
 #define LL_MAX_SDU_INTERV             0xFFFFF /*!< Maximum value for SDU interval. */
 
-#define LL_MIN_CIS_NSE                0x00    /*!< Minimum value for CIS number of subevent. */
+#define LL_MIN_CIS_NSE                0x01    /*!< Minimum value for CIS number of subevent. */
 #define LL_MAX_CIS_NSE                0x1F    /*!< Maximum value for CIS number of subevent. */
 
-#define LL_MIN_CIS_PL                 0x00    /*!< Minimum value for CIS payload. */
-#define LL_MAX_CIS_PL                 0xFB    /*!< Maximum value for CIS payload. */
+#define LL_MIN_CIS_PL                 0x0000  /*!< Minimum value for CIS payload. */
+#define LL_MAX_CIS_PL                 0x0FFB  /*!< Maximum value for CIS payload. */
+
+#define LL_MIN_CIS_TRANS_LAT          0x0005  /*!< Minimum value for CIS transport latency. */
+#define LL_MAX_CIS_TRANS_LAT          0x0FA0  /*!< Maximum value for CIS transport latency. */
 
 #define LL_MIN_CIS_PHY_BIT            0x00    /*!< Minimum value for CIS PHY bit. */
 #define LL_MAX_CIS_PHY_BIT            0x02    /*!< Maximum value for CIS PHY bit. */
@@ -392,28 +406,47 @@ enum
 #define LL_MIN_CIS_BN                 0x00    /*!< Minimum value for CIS burst number. */
 #define LL_MAX_CIS_BN                 0x10    /*!< Maximum value for CIS burst number. */
 
+#define LL_MIN_CIS_RTN                0x00    /*!< Minimum value for CIS retransmission number. */
+#define LL_MAX_CIS_RTN                0x0F    /*!< Maximum value for CIS retransmission number. */
+
 /*! \brief      ISO PDU LLID types. */
+typedef enum
+{
+  /* ISO */
+  LL_LLID_ISO_UNF_END_PDU           = 0x00,   /*!< Unframed ISO Data PDU; end fragment of a SDU. */
+  LL_LLID_ISO_UNF_CONT_PDU          = 0x01,   /*!< Unframed ISO Data PDU; start or continuation fragment of a SDU. */
+  LL_LLID_ISO_FRA_PDU               = 0x02,   /*!< Framed ISO Data PDU; one or more segments of a SDU. */
+  LL_LLID_ISO_EMPTY_PDU             = 0x01,   /*!< ISO Empty PDU. */
+
+  /* BIS */
+  LL_LLID_BIG_CTRL_PDU              = 0x03    /*!< BIG Control PDU. */
+} LlIsoLlid_t;
+
+/*! \brief      ISO PDU type. */
+typedef enum
+{
+  LL_ISO_PDU_TYPE_UNFRAMED          = 0x00,   /*!< Unframed PDU type. */
+  LL_ISO_PDU_TYPE_FRAMED            = 0x01    /*!< Framed PDU type. */
+} LlFraming_t;
+
+/*! \brief      ISO test payload types. */
 enum
 {
-  LL_ISO_LLID_CIS_DATA_PDU      = 0x00, /*!< CIS data PDU. */
-  LL_ISO_LLID_BIS_DATA_PDU      = 0x00, /*!< BIS data PDU. */
-  LL_ISO_LLID_BIS_CTRL_PDU      = 0x03, /*!< BIS control PDU. */
+  LL_ISO_TEST_PL_LEN_ZERO           = 0x00,   /*!< Zero length test payload */
+  LL_ISO_TEST_PL_LEN_VAR            = 0x01,   /*!< Variable length test payload */
+  LL_ISO_TEST_PL_LEN_MAX            = 0x02    /*!< Maximum length test payload */
 };
 
-/*! \brief      ISO PDU types. */
+/*! \brief      ISOAL SDU assembly states. */
 enum
 {
-  LL_ISO_PDU_TYPE_UNFRAMED      = 0x00, /*!< Unframed PDU type. */
-  LL_ISO_PDU_TYPE_FRAMED        = 0x01, /*!< framed PDU type. */
+  LL_ISO_SDU_STATE_NEW              = 0x00,   /*!< New SDU state. */
+  LL_ISO_SDU_STATE_CONT             = 0x01    /*!< SDU pending state. */
 };
 
-/*! \brief      ISO PDU types. */
-enum
-{
-  LL_ISO_TEST_PL_LEN_MAX        = 0x00, /*!< \brief Maximum length test payload */
-  LL_ISO_TEST_PL_LEN_VAR        = 0x01, /*!< \brief Maximum length test payload */
-  LL_ISO_TEST_PL_LEN_ZERO       = 0x02, /*!< \brief Maximum length test payload */
-};
+#define LL_ISO_TEST_VAR_MIN_LEN       4 /*!< Minimum length test payload. */
+
+#define LL_ISO_TRANSPORT_LAT_MIN      0x0000EA /*!< Minimum transport latency. */
 
 /*** DTM ***/
 
@@ -464,27 +497,93 @@ enum
 /*! \brief      ACAD opcodes. */
 enum
 {
-  LL_ACAD_OPCODE_CHANNEL_MAP_UPDATE = 0x28 /*!< Opcode for acad update periodic channel map ind. */
+  LL_ACAD_OPCODE_CHAN_MAP_UPD = 0x28,         /*!< Opcode for ACAD Channel Map Update Indication. */
+  LL_ACAD_OPCODE_BIG_INFO     = 0x2C          /*!< Opcode for ACAD BIG Info. */
 };
-#define LL_ACAD_OPCODE_LEN                  1   /*!< Length of a single Acad opcode. */
-#define LL_INSTANT_LEN                      2   /*!< Length of instant field (event counter). */
-#define LL_ACAD_LEN_FIELD_LEN               1   /*!< Length of Acad length field */
-#define LL_ACAD_CHAN_MAP_LEN                5   /*!< Length of channel map rounded to nearest byte */
 
-#define LL_ACAD_DATA_FIELD_MAX_LEN          LL_EXT_HDR_ACAD_MAX_LEN - LL_ACAD_OPCODE_LEN - LL_ACAD_LEN_FIELD_LEN /*!< Length of max ACAD field length without opcode and length field */
+#define LL_ACAD_OPCODE_LEN            1       /*!< Length of a single ACAD opcode. */
+#define LL_ACAD_LEN_FIELD_LEN         1       /*!< Length of ACAD length field */
+#define LL_ACAD_DATA_FIELD_MAX_LEN    (LL_EXT_HDR_ACAD_MAX_LEN - LL_ACAD_OPCODE_LEN - LL_ACAD_LEN_FIELD_LEN)
+                                              /*!< Length of max ACAD field length without opcode and length field */
+#define LL_ACAD_CHAN_MAP_UPD_LEN      8       /*!< Length of ACAD update periodic channel map data field. */
+#define LL_ACAD_BIG_INFO_UNENCRPT_LEN 33      /*!< Length of ACAD for an unencrypted BIG Info. */
+#define LL_ACAD_BIG_INFO_ENCRPT_LEN   57      /*!< Length of ACAD for an encrypted BIG Info. */
 
-#define LL_ACAD_UPDATE_CHANNEL_MAP_LEN      LL_ACAD_OPCODE_LEN + LL_ACAD_CHAN_MAP_LEN + LL_INSTANT_LEN    /*!< Length of acad update periodic channel map data field. */
+/*** BIG Control PDUs ***/
+
+/*! \brief      BIG Control opcodes. */
+enum
+{
+  LL_BIG_OPCODE_CHAN_MAP_IND = 0x00,          /*!< Opcode for BIG Channel Map Indication. */
+  LL_BIG_OPCODE_BIG_TERM_IND = 0x01,          /*!< Opcode for BIG Terminate Indication. */
+  LL_BIG_OPCODE_MAX                           /*!< Maximum number of BIG opcodes. */
+};
+
+#define LL_BIG_OPCODE_LEN             1       /*!< Length of a BIG Control PDU opcode. */
+
+#define LL_BIG_CHAN_MAP_IND_PDU_LEN   7       /*!< BIG Channel Map indication PDU length. */
+#define LL_BIG_TERMINATE_IND_PDU_LEN  3       /*!< BIG Terminate indication PDU length. */
+
+#define LL_BIG_MIN_INSTANT            6       /*!< Minimum number of BIG Events to apply a BIG Control PDU. */
+
+#define LL_BIG_CONTROL_ACCESS_ADDR    UINT32_C(0x7A412493)
+                                              /*!< BIG Control access address. */
 
 /*** Modify Sleep Clock Accuracy ***/
+
 /*! \brief      Action parameter. */
 enum
 {
-  LL_MODIFY_SCA_MORE_ACCURATE = 0x00,     /*!< Modify to more accurate clock accuracy. */
-  LL_MODIFY_SCA_LESS_ACCURATE = 0x01,     /*!< Modify to less accurate clock accuracy. */
-  LL_MODIFY_SCA_NO_ACTION                 /*!< No action (Used for request sca tester command). */
+  LL_MODIFY_SCA_MORE_ACCURATE = 0x00,         /*!< Modify to more accurate clock accuracy. */
+  LL_MODIFY_SCA_LESS_ACCURATE = 0x01,         /*!< Modify to less accurate clock accuracy. */
+  LL_MODIFY_SCA_NO_ACTION                     /*!< No action (Used for request sca tester command). */
 };
-#define LL_SCA_MIN_INDEX          0       /*!< Index for lowest accuracy clock. */
-#define LL_SCA_MAX_INDEX          7       /*!< Index for highest accuracy clock. */
+
+#define LL_SCA_MIN_INDEX              0       /*!< Index for lowest accuracy clock. */
+#define LL_SCA_MAX_INDEX              7       /*!< Index for highest accuracy clock. */
+
+/*** Power Control ***/
+
+/*! \brief      Power control Limit field. */
+#define LL_PWR_CONTROL_LIMIT_MIN_BIT  (1 << 0)  /*!< txPower is at it's minimum limit. */
+#define LL_PWR_CONTROL_LIMIT_MAX_BIT  (1 << 1)  /*!< txPower is at it's maximum limit. */
+
+/*! \brief       Power control APR field. */
+#define LL_PWR_CTRL_APR_UNDEF         0xFF    /*!< Undefined power reduction limit. */
+
+/*! \brief       Power control txPower field. */
+#define LL_PWR_CTRL_TXPOWER_MAX         0x7F  /*!< txPower symbol for maximum txPower. */
+#define LL_PWR_CTRL_TXPOWER_MIN         0x7E  /*!< txPower symbol for minimum txPower. */
+#define LL_PWR_CTRL_TXPOWER_UNAVAILABLE 127   /*!< Power is unavailable for this PHY. */
+#define LL_PWR_CTRL_TXPOWER_UNMANAGED   126   /*!< Power is unmanaged for this PHY. */
+
+/*! \brief   Path loss monitoring zones. */
+enum
+{
+  LL_PATH_LOSS_ZONE_LOW = 0x00,               /*!< Low path loss zone. */
+  LL_PATH_LOSS_ZONE_MID,                      /*!< Medium path loss zone. */
+  LL_PATH_LOSS_ZONE_HIGH                      /*!< High path loss zone. */
+};
+
+/*! brief    Power control reporting reasons table. */
+enum
+{
+  LL_POWER_REPORT_REASON_LOCAL,               /*!< Local power change report. */
+  LL_POWER_REPORT_REASON_REMOTE,              /*!< Remote power change report. */
+  LL_POWER_REPORT_REASON_READ_REMOTE          /*!< Remote transmit power read report. */
+};
+
+/*** ISO ***/
+
+#define LL_ISOAL_SEG_HDR_MASK_SC      0x01    /*!< Mask for segmentation header start/continuation bit. */
+#define LL_ISOAL_SEG_HDR_MASK_CMPLT   0x02    /*!< Mask for segmentation header complete bit. */
+
+/*! \brief  Codec transport types. */
+enum
+{
+  LL_CODEC_TRANS_CIS_BIT = (1 << 2),          /*!< Codec supported over LE CIS. */
+  LL_CODEC_TRANS_BIS_BIT = (1 << 3)           /*!< Codec supported over LE BIS. */
+};
 
 #ifdef __cplusplus
 };

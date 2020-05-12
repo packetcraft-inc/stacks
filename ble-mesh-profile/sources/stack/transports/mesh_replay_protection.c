@@ -4,16 +4,16 @@
  *
  *  \brief  Message replay protection feature implementation.
  *
- *  Copyright (c) 2010-2019 Arm Ltd.
+ *  Copyright (c) 2010-2019 Arm Ltd. All Rights Reserved.
  *
  *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -112,7 +112,7 @@ void MeshRpInit(void)
   /* Initialize list. */
   memset(meshRplCb.pRpl, 0, sizeof(meshRpListEntry_t) * pMeshConfig->pMemoryConfig->rpListSize);
 
-  retVal = WsfNvmReadData(MESH_RP_NVM_LIST_DATASET_ID, (uint8_t *)meshRplCb.pRpl,
+  retVal = WsfNvmReadData((uint64_t)MESH_RP_NVM_LIST_DATASET_ID, (uint8_t *)meshRplCb.pRpl,
                              sizeof(meshRpListEntry_t) * pMeshConfig->pMemoryConfig->rpListSize, NULL);
 
   /* Suppress compiler warnings. */
@@ -235,7 +235,7 @@ void MeshRpUpdateList(meshAddress_t srcAddr, meshSeqNumber_t seqNo, uint32_t ivI
       meshRplCb.pRpl[index].ivIndex = ivIndex;
 
       /* Store entry to NVM. */
-      WsfNvmWriteData(MESH_RP_NVM_LIST_DATASET_ID, (uint8_t *)meshRplCb.pRpl,
+      WsfNvmWriteData((uint64_t)MESH_RP_NVM_LIST_DATASET_ID, (uint8_t *)meshRplCb.pRpl,
                                    sizeof(meshRpListEntry_t) * pMeshConfig->pMemoryConfig->rpListSize, NULL);
       return;
     }
@@ -252,7 +252,7 @@ void MeshRpUpdateList(meshAddress_t srcAddr, meshSeqNumber_t seqNo, uint32_t ivI
   meshRplCb.pRpl[index].ivIndex = ivIndex;
 
   /* Store entry to NVM. */
-  WsfNvmWriteData(MESH_RP_NVM_LIST_DATASET_ID, (uint8_t *)meshRplCb.pRpl,
+  WsfNvmWriteData((uint64_t)MESH_RP_NVM_LIST_DATASET_ID, (uint8_t *)meshRplCb.pRpl,
                                sizeof(meshRpListEntry_t) * pMeshConfig->pMemoryConfig->rpListSize, NULL);
 }
 
@@ -272,7 +272,7 @@ void MeshRpClearList(void)
   memset(meshRplCb.pRpl, 0, sizeof(meshRpListEntry_t) * pMeshConfig->pMemoryConfig->rpListSize);
 
   /* Clear NVM entry also. */
-  WsfNvmWriteData(MESH_RP_NVM_LIST_DATASET_ID, (uint8_t *)meshRplCb.pRpl,
+  WsfNvmWriteData((uint64_t)MESH_RP_NVM_LIST_DATASET_ID, (uint8_t *)meshRplCb.pRpl,
                                sizeof(meshRpListEntry_t) * pMeshConfig->pMemoryConfig->rpListSize, NULL);
 }
 
@@ -285,5 +285,5 @@ void MeshRpClearList(void)
 /*************************************************************************************************/
 void MeshRpNvmErase(void)
 {
-  WsfNvmEraseData(MESH_RP_NVM_LIST_DATASET_ID, NULL);
+  WsfNvmEraseData((uint64_t)MESH_RP_NVM_LIST_DATASET_ID, NULL);
 }

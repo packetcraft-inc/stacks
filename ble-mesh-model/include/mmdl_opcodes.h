@@ -4,16 +4,16 @@
  *
  *  \brief  Mesh Model opcodes definitions.
  *
- *  Copyright (c) 2010-2019 Arm Ltd.
+ *  Copyright (c) 2010-2019 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -110,14 +110,14 @@ extern "C"
 /*! \brief Generic Power Default SIG defined Get Opcode */
 #define MMDL_GEN_POWERDEFAULT_GET_OPCODE               0x821B
 
+/*! \brief Generic Power Range SIG defined Get Opcode */
+#define MMDL_GEN_POWERRANGE_GET_OPCODE                 0x821D
+
 /*! \brief Generic Power Default SIG defined Set Opcode */
 #define MMDL_GEN_POWERDEFAULT_SET_OPCODE               0x821F
 
 /*! \brief Generic Power Default defined Set Unacknowledged Opcode */
 #define MMDL_GEN_POWERDEFAULT_SET_NO_ACK_OPCODE        0x8220
-
-/*! \brief Generic Power Range SIG defined Get Opcode */
-#define MMDL_GEN_POWERRANGE_GET_OPCODE                 0x821D
 
 /*! \brief Generic Power Range SIG defined Set Opcode */
 #define MMDL_GEN_POWERRANGE_SET_OPCODE                 0x8221
@@ -172,6 +172,54 @@ extern "C"
 
 /*! \brief Scene Delete Unacknowledged Opcode */
 #define MMDL_SCENE_DELETE_NO_ACK_OPCODE                0x829F
+
+/*! \brief Light CTL Get Opcode */
+#define MMDL_LIGHT_CTL_GET_OPCODE                      0x825D
+
+/*! \brief Light CTL Set Opcode */
+#define MMDL_LIGHT_CTL_SET_OPCODE                      0x825E
+
+/*! \brief Light CTL Set Unacknowledged Opcode */
+#define MMDL_LIGHT_CTL_SET_NO_ACK_OPCODE               0x825F
+
+/*! \brief Light CTL Status Opcode */
+#define MMDL_LIGHT_CTL_STATUS_OPCODE                   0x8260
+
+/*! \brief Light CTL Temperature Get Opcode */
+#define MMDL_LIGHT_CTL_TEMP_GET_OPCODE                 0x8261
+
+/*! \brief Light CTL Temperature Range Get Opcode */
+#define MMDL_LIGHT_CTL_TEMP_RANGE_GET_OPCODE           0x8262
+
+/*! \brief Light CTL Temperature Range Status Opcode */
+#define MMDL_LIGHT_CTL_RANGE_STATUS_OPCODE             0x8263
+
+/*! \brief Light CTL Temperature Set Opcode */
+#define MMDL_LIGHT_CTL_TEMP_SET_OPCODE                 0x8264
+
+/*! \brief Light CTL Temperature Set Unacknowledged Opcode */
+#define MMDL_LIGHT_CTL_TEMP_SET_NO_ACK_OPCODE          0x8265
+
+/*! \brief Light CTL Temperature Status Opcode */
+#define MMDL_LIGHT_CTL_TEMP_STATUS_OPCODE              0x8266
+
+/*! \brief Light CTL Default Get Opcode */
+#define MMDL_LIGHT_CTL_DEFAULT_GET_OPCODE              0x8267
+
+/*! \brief Light CTL Default Status Opcode */
+#define MMDL_LIGHT_CTL_DEFAULT_STATUS_OPCODE           0x8268
+
+/*! \brief Light CTL Default Set Opcode */
+#define MMDL_LIGHT_CTL_DEFAULT_SET_OPCODE              0x8269
+
+/*! \brief Light CTL Default Set Unacknowledged Opcode */
+#define MMDL_LIGHT_CTL_DEFAULT_SET_NO_ACK_OPCODE       0x826A
+
+/*! \brief Light CTL Temperature Range Set Opcode */
+#define MMDL_LIGHT_CTL_TEMP_RANGE_SET_OPCODE           0x826B
+
+/*! \brief Light CTL Temperature Range Set Unacknowledged Opcode */
+#define MMDL_LIGHT_CTL_TEMP_RANGE_SET_NO_ACK_OPCODE    0x826C
 
 /*! \brief Light HSL Get Opcode */
 #define MMDL_LIGHT_HSL_GET_OPCODE                      0x826D

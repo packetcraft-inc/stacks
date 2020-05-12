@@ -4,16 +4,16 @@
  *
  *  \brief      Radio interface file.
  *
- *  Copyright (c) 2018-2019 Arm Ltd.
+ *  Copyright (c) 2018-2019 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -41,8 +41,6 @@ extern "C" {
 /*************************************************************************************************/
 /*!
  *  \brief      Initialize RF path compensation.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void PalRadioInitPathComp(void);
@@ -64,6 +62,33 @@ int8_t PalRadioGetActualTxPower(int8_t txPwr, bool_t compFlag);
 
 /*************************************************************************************************/
 /*!
+ *  \brief      Request an increase in power.
+ *
+ *  \param      reqPwr           Requested Power.
+ *  \param      delta            Delta
+ *
+ *  \return     TxPower to be set
+ *
+ *              If increasing power: the controller will increase one step if possible.
+ *              If decreasing power: the controller will only decrease to the ceiling step.
+ */
+/*************************************************************************************************/
+int8_t PalRadioIncreasePower(int8_t reqPwr, int8_t delta);
+
+/*************************************************************************************************/
+/*!
+ *  \brief      Get the next acceptable power reduction step.
+ *
+ *  \param      txPwr           Tx Power(expressed in 1dBm units).
+ *
+ *  \return     Lowest acceptable power reduction size.
+ *
+ */
+/*************************************************************************************************/
+int8_t PalRadioGetAcceptablePowerReduction(int8_t txPwr);
+
+/*************************************************************************************************/
+/*!
  *  \brief      Set RF path compensation.
  *
  *  \param      txPathComp      RF transmit path compensation value (expressed in 0.1dBm units).
@@ -80,8 +105,6 @@ bool_t PalRadioWriteRfPathComp(int16_t txPathComp, int16_t rxPathComp);
  *
  *  \param      pMinTxPwr   Return buffer for minimum transmit power (expressed in 1dBm units).
  *  \param      pMaxTxPwr   Return buffer for maximum transmit power (expressed in 1dBm units).
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void PalRadioGetSupTxPower(int8_t *pMinTxPwr, int8_t *pMaxTxPwr);
@@ -92,8 +115,6 @@ void PalRadioGetSupTxPower(int8_t *pMinTxPwr, int8_t *pMaxTxPwr);
  *
  *  \param      pTxPathComp Return buffer for RF transmit path compensation value (expressed in 0.1dBm units).
  *  \param      pRxPathComp Return buffer for RF receive path compensation value (expressed in 0.1dBm units).
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void PalRadioReadRfPathComp(int16_t *pTxPathComp, int16_t *pRxPathComp);

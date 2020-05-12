@@ -4,16 +4,16 @@
  *
  *  \brief  Mesh Model specification definitions.
  *
- *  Copyright (c) 2010-2019 Arm Ltd.
+ *  Copyright (c) 2010-2019 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -479,6 +479,72 @@ extern "C"
 /*! \brief Number of supported commands on the Light Lightness Setup Server */
 #define MMDL_LIGHT_LIGHTNESSSETUP_SR_NUM_RCVD_OPCODES    4
 
+/*! \brief Light CTL Server SIG model identifier */
+#define MMDL_LIGHT_CTL_SR_MDL_ID                        0x1303
+
+/*! \brief Light CTL Setup Server SIG model identifier */
+#define MMDL_LIGHT_CTL_SETUP_SR_MDL_ID                  0x1304
+
+/*! \brief Light CTL Client SIG model identifier */
+#define MMDL_LIGHT_CTL_CL_MDL_ID                        0x1305
+
+/*! \brief Light CTL Temperature Server SIG model identifier */
+#define MMDL_LIGHT_CTL_TEMP_SR_MDL_ID                   0x1306
+
+/*! \brief Number of supported commands on the Light CTL Client */
+#define MMDL_LIGHT_CTL_CL_NUM_RCVD_OPCODES               4
+
+/*! \brief Number of supported commands on the Light CTL Setup Server */
+#define MMDL_LIGHT_CTL_SETUP_SR_NUM_RCVD_OPCODES         4
+
+/*! \brief Number of supported commands on the Light CTL Server */
+#define MMDL_LIGHT_CTL_SR_NUM_RCVD_OPCODES               5
+
+/*! \brief Number of supported commands on the Light CTL Temperature Server */
+#define MMDL_LIGHT_CTL_TEMP_SR_NUM_RCVD_OPCODES          3
+
+/*! \brief Light CTL Status Message Minimum Length */
+#define MMDL_LIGHT_CTL_STATUS_MIN_LEN                    4
+
+/*! \brief Light CTL Status Message Maximum Length */
+#define MMDL_LIGHT_CTL_STATUS_MAX_LEN                    9
+
+/*! \brief Light CTL Set Message Minimum Length */
+#define MMDL_LIGHT_CTL_SET_MIN_LEN                       7
+
+/*! \brief Light CTL Set Message Maximum Length */
+#define MMDL_LIGHT_CTL_SET_MAX_LEN                       9
+
+/*! \brief Light CTL Temperature Set Message Minimum Length */
+#define MMDL_LIGHT_CTL_TEMP_SET_MIN_LEN                  5
+
+/*! \brief Light CTL Temperature Set Message Maximum Length */
+#define MMDL_LIGHT_CTL_TEMP_SET_MAX_LEN                  7
+
+/*! \brief Light CTL Temperature Status Message Minimum Length */
+#define MMDL_LIGHT_CTL_TEMP_STATUS_MIN_LEN               4
+
+/*! \brief Light CTL Temperature Status Message Maximum Length */
+#define MMDL_LIGHT_CTL_TEMP_STATUS_MAX_LEN               9
+
+/*! \brief Light CTL Temperature Range Set Message Length */
+#define MMDL_LIGHT_CTL_TEMP_RANGE_SET_LEN                4
+
+/*! \brief Light CTL Temperature Range Status Message Length */
+#define MMDL_LIGHT_CTL_TEMP_RANGE_STATUS_LEN             5
+
+/*! \brief Light CTL Default Set Message Length */
+#define MMDL_LIGHT_CTL_DEFAULT_SET_LEN                   6
+
+/*! \brief Light CTL Default Status Message Length */
+#define MMDL_LIGHT_CTL_DEFAULT_STATUS_LEN                6
+
+/*! \brief Light CTL Temperature State Minimum */
+#define MMDL_LIGHT_CTL_TEMP_MIN                          0x0320
+
+/*! \brief Light CTL Temperature State Maximum */
+#define MMDL_LIGHT_CTL_TEMP_MAX                          0x4E20
+
 /*! \brief Light HSL Server SIG model identifier */
 #define MMDL_LIGHT_HSL_SR_MDL_ID                         0x1307
 
@@ -625,6 +691,11 @@ extern "C"
 
 /*! \brief Unknown Time To Discharge state. */
 #define MMDL_GEN_BAT_UNKOWN_TIME_TO_DISCHARGE            0xFFFFFF
+
+/*! \brief The model transition state update interval in milliseconds */
+#ifndef MMDL_TRANSITION_STATE_UPDATE_INTERVAL
+#define MMDL_TRANSITION_STATE_UPDATE_INTERVAL            1000
+#endif
 
 /*! \brief Model Generic OnOff states enumeration */
 enum mmdlGenOnOffStates

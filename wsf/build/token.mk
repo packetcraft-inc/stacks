@@ -2,21 +2,19 @@
 #
 # Token generation make targets
 #
-# Copyright (c) 2013-2019 Arm Ltd.
-#
 # Copyright (c) 2019 Packetcraft, Inc.
-#
-#  Licensed under the Apache License, Version 2.0 (the "License");
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 ###################################################################################################
 
@@ -39,13 +37,8 @@ MONITOR         := $(PYTHON) $(ROOT_DIR)/wsf/trace_monitor.py
 
 # Output
 TOK_DIR         := tok
-ifneq ($(BIN),)
 TOKEN_DEF       := $(BIN:.elf=.tokens)
 TOKEN_HDR       := $(BIN:.elf=_tokens.h)
-else
-TOKEN_DEF       := $(LIB:.a=.tokens)
-TOKEN_HDR       := $(LIB:.a=_tokens.h)
-endif
 
 #-------------------------------------------------------------------------------
 #     Scripts
@@ -61,21 +54,15 @@ FILE_HASH       = $(shell $(PYTHON) -c "$(HASH_SCR)" $(notdir $(1)))
 
 TOK_FILES       := $(C_FILES:.c=.pp)
 TOK_FILES       := $(subst $(ROOT_DIR)/,$(TOK_DIR)/,$(TOK_FILES))
-ifneq ($(BSP_DIR),)
-TOK_FILES       := $(subst $(BSP_DIR)/,$(TOK_DIR)/,$(TOK_FILES))
-endif
+TOK_FILES       := $(filter-out tok/thirdparty/%,$(TOK_FILES))
 
 #--------------------------------------------------------------------------------------------------
 #     Targets
 #--------------------------------------------------------------------------------------------------
 
-token: $(TOK_FILES) $(LIBS)
+token: $(TOK_FILES)
 	@rm -f $(TOKEN_DEF)
 	@mkdir -p $(dir $(TOKEN_DEF))
-ifneq ($(LIBS),)
-	@find $(ROOT_DIR) -name \*.mod -exec cat {} \; >> $(TOKEN_DEF)
-	@find $(ROOT_DIR) -name \*.pp -exec grep __WSF_TOKEN_DEFINE__ {} \; | cut -d"(" -f2 | cut -d")" -f1 >> $(TOKEN_DEF)
-endif
 	@find $(TOK_DIR) -name \*.mod -exec cat {} \; >> $(TOKEN_DEF)
 	@find $(TOK_DIR) -name \*.pp -exec grep __WSF_TOKEN_DEFINE__ {} \; | cut -d"(" -f2 | cut -d")" -f1 >> $(TOKEN_DEF)
 	@$(TOK_TO_HDR) $(TOKEN_DEF) $(TOKEN_HDR)
@@ -94,13 +81,11 @@ $(TOK_DIR)/%.pp: $(ROOT_DIR)/%.c
 	@$(CC) $(C_FLAGS) -DTOKEN_GENERATION -DMODULE_ID=$(call FILE_HASH,$<) -E -o $@ $<
 	@echo "$(call FILE_HASH,$<), 0, $<, , ," >> $(@:.pp=.mod)
 
-ifneq ($(BSP_DIR),)
 $(TOK_DIR)/%.pp: $(BSP_DIR)/%.c
 	@echo "+++ Scanning: $<"
 	@mkdir -p $(dir $@)
 	@$(CC) $(C_FLAGS) -DTOKEN_GENERATION -DMODULE_ID=$(call FILE_HASH,$<) -E -o $@ $<
 	@echo "$(call FILE_HASH,$<), 0, $<, , ," >> $(@:.pp=.mod)
-endif
 
 token.clean:
 	@rm -rf $(TOK_DIR)

@@ -4,16 +4,16 @@
  *
  *  \brief  Secure Network Beacon module implementation.
  *
- *  Copyright (c) 2010-2019 Arm Ltd.
+ *  Copyright (c) 2010-2019 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -351,19 +351,20 @@ static void meshNwkBeaconPduRecvCback(meshBrInterfaceId_t brIfId,
 static void meshNwkBeaconEvtCback(meshBrInterfaceId_t brIfId, meshBrEvent_t event,
                                   const meshBrEventParams_t *pEventParams)
 {
-  meshNwkBeaconMeta_t *pMeta;
-  uint16_t cnt;
+  meshNwkBeaconMeta_t *pMeta, *pPrev, *pNext;
 
   /* Handle only delivery confirmations. */
   if(event == MESH_BR_INTERFACE_PACKET_SENT_EVT)
   {
-    /* Get beacon meta queue count. */
-    cnt = WsfQueueCount(&meshNwkBeaconCb.ackBeaconsQueue);
+    /* Set previous to NULL. */
+    pPrev = NULL;
+    /* Point to start of the queue. */
+    pMeta = (meshNwkBeaconMeta_t *)(&(meshNwkBeaconCb.ackBeaconsQueue))->pHead;
 
-    while (cnt)
+    while (pMeta != NULL)
     {
-      pMeta = (meshNwkBeaconMeta_t *) WsfQueueDeq(&meshNwkBeaconCb.ackBeaconsQueue);
-
+      /* Get pointer to next entry. */
+      pNext = pMeta->pNext;
       /* Check if sent PDU is contained by this meta. */
       /* Note: pMeta cannot be NULL */
       /* coverity[dereference] */
@@ -381,16 +382,19 @@ static void meshNwkBeaconEvtCback(meshBrInterfaceId_t brIfId, meshBrEvent_t even
       /* coverity[dereference] */
       if (pMeta->refCount == 0)
       {
+        /* Remove from queue. pPrev remains the same. */
+        WsfQueueRemove(&(meshNwkBeaconCb.ackBeaconsQueue), pMeta, pPrev);
         /* Free memory. */
         WsfBufFree(pMeta);
       }
       else
       {
-        /* Enqueue back. */
-        WsfQueueEnq(&meshNwkBeaconCb.ackBeaconsQueue, pMeta);
+        /* Update pointer to previous element. */
+        pPrev = pMeta;
       }
 
-      cnt--;
+      /* Move to next entry. */
+      pMeta = pNext;
     }
   }
 

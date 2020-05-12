@@ -1,7 +1,7 @@
 /**
- * Copyright (c) 2018, Nordic Semiconductor ASA
+ * Copyright (c) 2018 - 2019, Nordic Semiconductor ASA
  *
- *
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -102,27 +102,27 @@ static ret_code_t backend_cc310_crypt(void * const           p_context,
 
     if (operation == NRF_CRYPTO_ENCRYPT)
     {
-        occ_chacha20_poly1305_encrypt_aad(p_mac,
-                                          p_data_out,
-                                          p_data_in,
-                                          data_in_size,
-                                          p_adata,
-                                          adata_size,
-                                          p_nonce,
-                                          (size_t)nonce_size,
-                                          p_ctx->key);
+        ocrypto_chacha20_poly1305_encrypt_aad(p_mac,
+                                              p_data_out,
+                                              p_data_in,
+                                              data_in_size,
+                                              p_adata,
+                                              adata_size,
+                                              p_nonce,
+                                              (size_t)nonce_size,
+                                              p_ctx->key);
     }
     else if (operation == NRF_CRYPTO_DECRYPT)
     {
-        result = occ_chacha20_poly1305_decrypt_aad(p_mac,
-                                                   p_data_out,
-                                                   p_data_in,
-                                                   data_in_size,
-                                                   p_adata,
-                                                   adata_size,
-                                                   p_nonce,
-                                                   (size_t)nonce_size,
-                                                   p_ctx->key);
+        result = ocrypto_chacha20_poly1305_decrypt_aad(p_mac,
+                                                       p_data_out,
+                                                       p_data_in,
+                                                       data_in_size,
+                                                       p_adata,
+                                                       adata_size,
+                                                       p_nonce,
+                                                       (size_t)nonce_size,
+                                                       p_ctx->key);
 
         if (result != 0)
         {

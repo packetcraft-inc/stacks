@@ -4,16 +4,16 @@
  *
  *  \brief  DM scan module.
  *
- *  Copyright (c) 2016-2018 Arm Ltd.
+ *  Copyright (c) 2016-2018 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -52,6 +52,9 @@ enum
   DM_SCAN_STATE_SCANNING,
   DM_SCAN_STATE_STOPPING
 };
+
+/*! Uninitialized HCI sync handle */
+#define DM_SYNC_HCI_HANDLE_NONE     0xFFFF
 
 /**************************************************************************************************
   Data Types
@@ -125,7 +128,7 @@ typedef struct
   wsfTimer_t              scanTimer;
   uint16_t                scanInterval[DM_NUM_PHYS];
   uint16_t                scanWindow[DM_NUM_PHYS];
-  bool_t                  scanState;
+  uint8_t                 scanState;
   uint16_t                scanDuration;
   bool_t                  filterNextScanRsp;
   uint8_t                 discFilter;
@@ -139,6 +142,7 @@ typedef struct
   uint8_t                 advAddrType; /*!< advertiser address type */
   uint16_t                handle;      /*!< sync handle */
   dmSyncId_t              syncId;      /*!< sync id */
+  bool_t                  encrypt;     /*!< Unencrypted or Encrypted */
   uint8_t                 state;       /*!< sync state */
   uint8_t                 inUse;       /*!< TRUE if entry in use */
 } dmSyncCb_t;

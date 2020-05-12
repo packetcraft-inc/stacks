@@ -4,22 +4,21 @@
  *
  *  \brief  Configuration Model commmon implementation.
  *
- *  Copyright (c) 2018-2019 Arm Ltd.
+ *  Copyright (c) 2018-2019 Arm Ltd. All Rights Reserved.
  *
  *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
  */
 /*************************************************************************************************/
 
@@ -145,31 +144,36 @@ uint16_t MeshCfgSizeOfEvt(wsfMsgHdr_t *pMeshCfgEvt)
 
     len = meshCfgEvtCbackLen[pMeshCfgEvt->param];
 
-    switch (pMeshCfgEvt->param)
+    if (pMeshCfgEvt->status == MESH_CFG_MDL_CL_SUCCESS)
     {
-      case MESH_CFG_MDL_COMP_PAGE_GET_EVENT:
-        len += ((meshCfgMdlCompDataEvt_t *) pMeshCfgEvt)->data.pageSize * sizeof(uint8_t);
-        break;
 
-      case MESH_CFG_MDL_SUBSCR_SIG_GET_EVENT:
-      case MESH_CFG_MDL_SUBSCR_VENDOR_GET_EVENT:
-        len += ((meshCfgMdlModelSubscrListEvt_t *) pMeshCfgEvt)->subscrListSize * sizeof(meshAddress_t);
-        break;
+      switch (pMeshCfgEvt->param)
+      {
+        case MESH_CFG_MDL_COMP_PAGE_GET_EVENT:
+          len += ((meshCfgMdlCompDataEvt_t *) pMeshCfgEvt)->data.pageSize * sizeof(uint8_t);
+          break;
 
-      case MESH_CFG_MDL_NETKEY_GET_EVENT:
-        len += ((meshCfgMdlNetKeyListEvt_t *) pMeshCfgEvt)->netKeyList.netKeyCount * sizeof(uint16_t);
-        break;
+        case MESH_CFG_MDL_SUBSCR_SIG_GET_EVENT:
+        case MESH_CFG_MDL_SUBSCR_VENDOR_GET_EVENT:
+          len += ((meshCfgMdlModelSubscrListEvt_t *) pMeshCfgEvt)->subscrListSize * sizeof(meshAddress_t);
+          break;
 
-      case MESH_CFG_MDL_APPKEY_GET_EVENT:
-        len += ((meshCfgMdlAppKeyListEvt_t *) pMeshCfgEvt)->appKeyList.appKeyCount * sizeof(uint16_t);
-        break;
+        case MESH_CFG_MDL_NETKEY_GET_EVENT:
+          len += ((meshCfgMdlNetKeyListEvt_t *) pMeshCfgEvt)->netKeyList.netKeyCount * sizeof(uint16_t);
+          break;
 
-      case MESH_CFG_MDL_APP_SIG_GET_EVENT:
-      case MESH_CFG_MDL_APP_VENDOR_GET_EVENT:
-        len += ((meshCfgMdlModelAppListEvt_t *) pMeshCfgEvt)->modelAppList.appKeyCount * sizeof(uint16_t);
+        case MESH_CFG_MDL_APPKEY_GET_EVENT:
+          len += ((meshCfgMdlAppKeyListEvt_t *) pMeshCfgEvt)->appKeyList.appKeyCount * sizeof(uint16_t);
+          break;
 
-      default:
-        break;
+        case MESH_CFG_MDL_APP_SIG_GET_EVENT:
+        case MESH_CFG_MDL_APP_VENDOR_GET_EVENT:
+          len += ((meshCfgMdlModelAppListEvt_t *) pMeshCfgEvt)->modelAppList.appKeyCount * sizeof(uint16_t);
+          break;
+
+        default:
+          break;
+      }
     }
 
     return len;
@@ -197,52 +201,58 @@ bool_t MeshCfgMsgDeepCopy(wsfMsgHdr_t *pMeshCfgEvtOut, const wsfMsgHdr_t *pMeshC
     /* Copy over basic structure */
     memcpy(pMeshCfgEvtOut, pMeshCfgEvtIn, meshCfgEvtCbackLen[pMeshCfgEvtIn->param]);
 
-    /* Perform event specific copying. */
-    switch (pMeshCfgEvtIn->param)
+    if (pMeshCfgEvtIn->status == MESH_CFG_MDL_CL_SUCCESS)
     {
-      case MESH_CFG_MDL_COMP_PAGE_GET_EVENT:
-        ((meshCfgMdlCompDataEvt_t *) pMeshCfgEvtOut)->data.pPage = (uint8_t *) pMeshCfgEvtOut + sizeof(meshCfgMdlCompDataEvt_t);
 
-        memcpy(((meshCfgMdlCompDataEvt_t *) pMeshCfgEvtOut)->data.pPage,
-               ((meshCfgMdlCompDataEvt_t *) pMeshCfgEvtIn)->data.pPage,
-               ((meshCfgMdlCompDataEvt_t *) pMeshCfgEvtIn)->data.pageSize);
-        break;
+      /* Perform event specific copying. */
+      switch (pMeshCfgEvtIn->param)
+      {
+        case MESH_CFG_MDL_COMP_PAGE_GET_EVENT:
+          ((meshCfgMdlCompDataEvt_t *) pMeshCfgEvtOut)->data.pPage = (uint8_t *) ((meshCfgMdlCompDataEvt_t *) pMeshCfgEvtOut + 1);
 
-      case MESH_CFG_MDL_SUBSCR_SIG_GET_EVENT:
-      case MESH_CFG_MDL_SUBSCR_VENDOR_GET_EVENT:
-        ((meshCfgMdlModelSubscrListEvt_t *) pMeshCfgEvtOut)->pSubscrList = (uint16_t *) pMeshCfgEvtOut + sizeof(meshCfgMdlModelSubscrListEvt_t);
+          memcpy(((meshCfgMdlCompDataEvt_t *) pMeshCfgEvtOut)->data.pPage,
+                 ((meshCfgMdlCompDataEvt_t *) pMeshCfgEvtIn)->data.pPage,
+                 ((meshCfgMdlCompDataEvt_t *) pMeshCfgEvtIn)->data.pageSize);
+          break;
 
-        memcpy(((meshCfgMdlModelSubscrListEvt_t *) pMeshCfgEvtOut)->pSubscrList,
-               ((meshCfgMdlModelSubscrListEvt_t *) pMeshCfgEvtIn)->pSubscrList,
-               ((meshCfgMdlModelSubscrListEvt_t *) pMeshCfgEvtIn)->subscrListSize * sizeof(meshAddress_t));
+        case MESH_CFG_MDL_SUBSCR_SIG_GET_EVENT:
+        case MESH_CFG_MDL_SUBSCR_VENDOR_GET_EVENT:
+          ((meshCfgMdlModelSubscrListEvt_t *) pMeshCfgEvtOut)->pSubscrList = (uint16_t *) ((meshCfgMdlModelSubscrListEvt_t *) pMeshCfgEvtOut + 1);
 
-        break;
+          memcpy(((meshCfgMdlModelSubscrListEvt_t *) pMeshCfgEvtOut)->pSubscrList,
+                 ((meshCfgMdlModelSubscrListEvt_t *) pMeshCfgEvtIn)->pSubscrList,
+                 ((meshCfgMdlModelSubscrListEvt_t *) pMeshCfgEvtIn)->subscrListSize * sizeof(meshAddress_t));
 
-      case MESH_CFG_MDL_NETKEY_GET_EVENT:
-        ((meshCfgMdlNetKeyListEvt_t *) pMeshCfgEvtOut)->netKeyList.pNetKeyIndexes = (uint16_t *) pMeshCfgEvtOut + sizeof(meshCfgMdlNetKeyListEvt_t);
+          break;
 
-        memcpy(((meshCfgMdlNetKeyListEvt_t *) pMeshCfgEvtOut)->netKeyList.pNetKeyIndexes,
-               ((meshCfgMdlNetKeyListEvt_t *) pMeshCfgEvtIn)->netKeyList.pNetKeyIndexes,
-               ((meshCfgMdlNetKeyListEvt_t *) pMeshCfgEvtIn)->netKeyList.netKeyCount * sizeof(uint16_t));
-        break;
+        case MESH_CFG_MDL_NETKEY_GET_EVENT:
+          ((meshCfgMdlNetKeyListEvt_t *) pMeshCfgEvtOut)->netKeyList.pNetKeyIndexes = (uint16_t *) ((meshCfgMdlNetKeyListEvt_t *) pMeshCfgEvtOut + 1);
 
-      case MESH_CFG_MDL_APPKEY_GET_EVENT:
-        ((meshCfgMdlAppKeyListEvt_t *) pMeshCfgEvtOut)->appKeyList.pAppKeyIndexes = (uint16_t *)pMeshCfgEvtOut + sizeof(meshCfgMdlAppKeyListEvt_t);
+          memcpy(((meshCfgMdlNetKeyListEvt_t *) pMeshCfgEvtOut)->netKeyList.pNetKeyIndexes,
+                 ((meshCfgMdlNetKeyListEvt_t *) pMeshCfgEvtIn)->netKeyList.pNetKeyIndexes,
+                 ((meshCfgMdlNetKeyListEvt_t *) pMeshCfgEvtIn)->netKeyList.netKeyCount * sizeof(uint16_t));
+          break;
 
-        memcpy(((meshCfgMdlAppKeyListEvt_t *) pMeshCfgEvtOut)->appKeyList.pAppKeyIndexes,
-               ((meshCfgMdlAppKeyListEvt_t *) pMeshCfgEvtIn)->appKeyList.pAppKeyIndexes,
-               ((meshCfgMdlAppKeyListEvt_t *) pMeshCfgEvtIn)->appKeyList.appKeyCount * sizeof(uint16_t));
-        break;
+        case MESH_CFG_MDL_APPKEY_GET_EVENT:
+          ((meshCfgMdlAppKeyListEvt_t *) pMeshCfgEvtOut)->appKeyList.pAppKeyIndexes = (uint16_t *) ((meshCfgMdlAppKeyListEvt_t *) pMeshCfgEvtOut + 1);
 
-      case MESH_CFG_MDL_APP_SIG_GET_EVENT:
-      case MESH_CFG_MDL_APP_VENDOR_GET_EVENT:
-        ((meshCfgMdlModelAppListEvt_t *) pMeshCfgEvtOut)->modelAppList.pAppKeyIndexes = (uint16_t *) pMeshCfgEvtOut + sizeof(meshCfgMdlModelAppListEvt_t);
+          memcpy(((meshCfgMdlAppKeyListEvt_t *) pMeshCfgEvtOut)->appKeyList.pAppKeyIndexes,
+                 ((meshCfgMdlAppKeyListEvt_t *) pMeshCfgEvtIn)->appKeyList.pAppKeyIndexes,
+                 ((meshCfgMdlAppKeyListEvt_t *) pMeshCfgEvtIn)->appKeyList.appKeyCount * sizeof(uint16_t));
+          break;
 
-        memcpy(((meshCfgMdlModelAppListEvt_t *) pMeshCfgEvtOut)->modelAppList.pAppKeyIndexes,
-               ((meshCfgMdlModelAppListEvt_t *) pMeshCfgEvtIn)->modelAppList.pAppKeyIndexes,
-               ((meshCfgMdlModelAppListEvt_t *) pMeshCfgEvtIn)->modelAppList.appKeyCount * sizeof(uint16_t));
-      default:
-        break;
+        case MESH_CFG_MDL_APP_SIG_GET_EVENT:
+        case MESH_CFG_MDL_APP_VENDOR_GET_EVENT:
+          ((meshCfgMdlModelAppListEvt_t *) pMeshCfgEvtOut)->modelAppList.pAppKeyIndexes = (uint16_t *) ((meshCfgMdlModelAppListEvt_t *) pMeshCfgEvtOut + 1);
+
+          memcpy(((meshCfgMdlModelAppListEvt_t *) pMeshCfgEvtOut)->modelAppList.pAppKeyIndexes,
+                 ((meshCfgMdlModelAppListEvt_t *) pMeshCfgEvtIn)->modelAppList.pAppKeyIndexes,
+                 ((meshCfgMdlModelAppListEvt_t *) pMeshCfgEvtIn)->modelAppList.appKeyCount * sizeof(uint16_t));
+          break;
+
+        default:
+          break;
+      }
     }
 
     return TRUE;

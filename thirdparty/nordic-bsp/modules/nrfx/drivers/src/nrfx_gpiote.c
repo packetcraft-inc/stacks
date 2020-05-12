@@ -1,7 +1,7 @@
 /**
- * Copyright (c) 2015 - 2018, Nordic Semiconductor ASA
+ * Copyright (c) 2015 - 2019, Nordic Semiconductor ASA
  *
- *
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -55,6 +55,9 @@
 #define NO_CHANNELS               (-1)
 #define SENSE_FIELD_POS           (6)
 #define SENSE_FIELD_MASK          (0xC0)
+
+/* Check if every pin can be encoded on provided number of bits. */
+NRFX_STATIC_ASSERT(NUMBER_OF_PINS <= (1 << SENSE_FIELD_POS));
 
 /**
  * @brief Macro for converting task-event index to an address of an event register.

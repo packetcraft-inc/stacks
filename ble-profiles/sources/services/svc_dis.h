@@ -4,16 +4,16 @@
  *
  *  \brief  Example Device Information Service implementation.
  *
- *  Copyright (c) 2011-2018 Arm Ltd.
+ *  Copyright (c) 2011-2020 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -66,8 +66,10 @@ enum
   DIS_HWR_HDL,                      /*!< \brief Hardware revision string */
   DIS_SWR_CH_HDL,                   /*!< \brief Software revision string characteristic */
   DIS_SWR_HDL,                      /*!< \brief Software revision string */
-  DIS_RCD_CH_HDL,                   /*!< \brief Registration certificate data characteristic */
-  DIS_RCD_HDL,                      /*!< \brief Registration certificate data */
+  DIS_RCD_CH_HDL,                   /*!< \brief IEEE 11073-20601 regulatory certificate data characteristic */
+  DIS_RCD_HDL,                      /*!< \brief IEEE 11073-20601 regulatory certificate data */
+  DIS_PNP_ID_CH_HDL,                /*!< \brief PnP ID characteristic */
+  DIS_PNP_ID_HDL,                   /*!< \brief PnP ID */
   DIS_MAX_HDL                       /*!< \brief Maximum handle. */
 };
 /**@}*/
@@ -85,23 +87,23 @@ Macros
 #endif
 
 #ifndef DIS_MAXSIZE_MN_ATT
-#define DIS_MAXSIZE_MN_ATT          20  /*!< \brief Size of model number string attribute */
+#define DIS_MAXSIZE_MN_ATT          25  /*!< \brief Size of model number string attribute */
 #endif
 
 #ifndef DIS_MAXSIZE_SN_ATT
-#define DIS_MAXSIZE_SN_ATT          20  /*!< \brief Size of serial number string attribute */
+#define DIS_MAXSIZE_SN_ATT          25  /*!< \brief Size of serial number string attribute */
 #endif
 
 #ifndef DIS_MAXSIZE_FWR_ATT
-#define DIS_MAXSIZE_FWR_ATT         16  /*!< \brief Size of firmware revision string attribute */
+#define DIS_MAXSIZE_FWR_ATT         21 /*!< \brief Size of firmware revision string attribute */
 #endif
 
 #ifndef DIS_MAXSIZE_HWR_ATT
-#define DIS_MAXSIZE_HWR_ATT         16  /*!< \brief Size of hardware revision string attribute */
+#define DIS_MAXSIZE_HWR_ATT         21  /*!< \brief Size of hardware revision string attribute */
 #endif
 
 #ifndef DIS_MAXSIZE_SWR_ATT
-#define DIS_MAXSIZE_SWR_ATT         16  /*!< \brief Size of software revision string attribute */
+#define DIS_MAXSIZE_SWR_ATT         21  /*!< \brief Size of software revision string attribute */
 #endif
 
 #ifndef DIS_SIZE_SID_ATT

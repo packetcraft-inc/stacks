@@ -43,12 +43,11 @@
 #include <pthread.h>
 #endif
 #include "ssi_pal_types.h"
-#include "ssi_regs.h"
 
 #include "integration_test_plat_defs.h"
 #include "crys_rnd.h"
 
-#include "nrf52840.h"
+#include "nrf.h"
 #include "SEGGER_RTT.h"
 
 /*Globals*/

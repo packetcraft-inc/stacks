@@ -4,16 +4,16 @@
  *
  *  \brief  Link layer controller slave PHY update state machine implementation file.
  *
- *  Copyright (c) 2016-2018 Arm Ltd.
+ *  Copyright (c) 2016-2018 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -84,8 +84,6 @@ void lctrActFlushArq(lctrConnCtx_t *pCtx);
  *  \brief      Update effective data packet time after PHY update procedure completes and notify host.
  *
  *  \param      pCtx    Connection context.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 static void lctrUpdateDataTime(lctrConnCtx_t *pCtx)
@@ -98,26 +96,26 @@ static void lctrUpdateDataTime(lctrConnCtx_t *pCtx)
   switch (pCtx->bleData.chan.txPhy)
   {
     case BB_PHY_BLE_1M:
-      maxTxTime = WSF_MIN(LL_DATA_LEN_TO_TIME_1M(pCtx->effDataPdu.maxTxLen), pCtx->effDataPdu.maxTxTime);
+      maxTxTime = WSF_MIN(LL_DATA_LEN_TO_TIME_1M(pCtx->effDataPdu.maxTxLen, TRUE), pCtx->effDataPdu.maxTxTime);
       break;
     case BB_PHY_BLE_2M:
-      maxTxTime = WSF_MIN(LL_DATA_LEN_TO_TIME_2M(pCtx->effDataPdu.maxTxLen), pCtx->effDataPdu.maxTxTime);
+      maxTxTime = WSF_MIN(LL_DATA_LEN_TO_TIME_2M(pCtx->effDataPdu.maxTxLen, TRUE), pCtx->effDataPdu.maxTxTime);
       break;
     case BB_PHY_BLE_CODED:
-      maxTxTime = WSF_MIN(LL_DATA_LEN_TO_TIME_CODED_S8(pCtx->effDataPdu.maxTxLen), pCtx->effDataPdu.maxTxTime);
+      maxTxTime = WSF_MIN(LL_DATA_LEN_TO_TIME_CODED_S8(pCtx->effDataPdu.maxTxLen, TRUE), pCtx->effDataPdu.maxTxTime);
       break;
   }
 
   switch (pCtx->bleData.chan.rxPhy)
   {
     case BB_PHY_BLE_1M:
-      maxRxTime = WSF_MIN(LL_DATA_LEN_TO_TIME_1M(pCtx->effDataPdu.maxRxLen), pCtx->effDataPdu.maxRxTime);
+      maxRxTime = WSF_MIN(LL_DATA_LEN_TO_TIME_1M(pCtx->effDataPdu.maxRxLen, TRUE), pCtx->effDataPdu.maxRxTime);
       break;
     case BB_PHY_BLE_2M:
-      maxRxTime = WSF_MIN(LL_DATA_LEN_TO_TIME_2M(pCtx->effDataPdu.maxRxLen), pCtx->effDataPdu.maxRxTime);
+      maxRxTime = WSF_MIN(LL_DATA_LEN_TO_TIME_2M(pCtx->effDataPdu.maxRxLen, TRUE), pCtx->effDataPdu.maxRxTime);
       break;
     case BB_PHY_BLE_CODED:
-      maxRxTime = WSF_MIN(LL_DATA_LEN_TO_TIME_CODED_S8(pCtx->effDataPdu.maxRxLen), pCtx->effDataPdu.maxRxTime);
+      maxRxTime = WSF_MIN(LL_DATA_LEN_TO_TIME_CODED_S8(pCtx->effDataPdu.maxRxLen, TRUE), pCtx->effDataPdu.maxRxTime);
       break;
   }
 
@@ -164,8 +162,6 @@ static void lctrUpdateDataTime(lctrConnCtx_t *pCtx)
  *  \brief      Notify host of peer rejected PHY request.
  *
  *  \param      pCtx    Connection context.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrActPeerRejectPhyReq(lctrConnCtx_t *pCtx)
@@ -198,8 +194,6 @@ void lctrActPeerRejectPhyReq(lctrConnCtx_t *pCtx)
  *  \brief      Notify host of connection update with no change.
  *
  *  \param      pCtx    Connection context.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrActNotifyHostPhyUpdateNoChange(lctrConnCtx_t *pCtx)
@@ -224,8 +218,6 @@ void lctrActNotifyHostPhyUpdateNoChange(lctrConnCtx_t *pCtx)
  *  \brief      Notify host of connection update with success status.
  *
  *  \param      pCtx    Connection context.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrActNotifyHostPhyUpdateSuccess(lctrConnCtx_t *pCtx)
@@ -301,8 +293,6 @@ uint8_t lctrSuppPhys(void)
  *  \param      pTxPhys     Preferred transmitter PHYs.
  *  \param      pRxPhys     Preferred receiver PHYs.
  *  \param      peerPhys    Peer preferred PHYs.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 static void lctrAdjustPhyPreference(lctrConnCtx_t *pCtx, uint8_t allPhys, uint8_t *pTxPhys, uint8_t *pRxPhys, uint8_t peerPhys)
@@ -356,8 +346,6 @@ static void lctrAdjustPhyPreference(lctrConnCtx_t *pCtx, uint8_t allPhys, uint8_
  *  \brief      Action indirection for start PHY update.
  *
  *  \param      pCtx    Connection context.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrActStartPhyUpdate(lctrConnCtx_t *pCtx)
@@ -401,8 +389,6 @@ void lctrActStartPhyUpdate(lctrConnCtx_t *pCtx)
  *  \brief      Action indirection for flushing ARQ.
  *
  *  \param      pCtx    Connection context.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrActFlushArq(lctrConnCtx_t *pCtx)
@@ -420,8 +406,6 @@ void lctrActFlushArq(lctrConnCtx_t *pCtx)
  *  \brief      Action indirection for received host PHY update command.
  *
  *  \param      pCtx    Connection context.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 static void lctrActHostPhyUpdate(lctrConnCtx_t *pCtx)
@@ -436,8 +420,6 @@ static void lctrActHostPhyUpdate(lctrConnCtx_t *pCtx)
  *  \brief      Action indirection for start PHY response.
  *
  *  \param      pCtx    Connection context.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 static void lctrActStartPhyRsp(lctrConnCtx_t *pCtx)
@@ -461,8 +443,6 @@ static void lctrActStartPhyRsp(lctrConnCtx_t *pCtx)
  *  \brief      Action indirection for received peer PHY request.
  *
  *  \param      pCtx    Connection context.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 static void lctrActPeerPhyReq(lctrConnCtx_t *pCtx)
@@ -476,8 +456,6 @@ static void lctrActPeerPhyReq(lctrConnCtx_t *pCtx)
  *  \brief      Action indirection for received peer PHY update request.
  *
  *  \param      pCtx    Connection context.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 static void lctrActPeerPhyUpdateReq(lctrConnCtx_t *pCtx)
@@ -501,8 +479,6 @@ static void lctrActPeerPhyUpdateReq(lctrConnCtx_t *pCtx)
  *  \brief      Action indirection for received peer PHY request.
  *
  *  \param      pCtx    Connection context.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 static void lctrActPeerPhyReqWithCollision(lctrConnCtx_t *pCtx)
@@ -515,8 +491,6 @@ static void lctrActPeerPhyReqWithCollision(lctrConnCtx_t *pCtx)
  *  \brief      Notify host of PHY update with disallowed status.
  *
  *  \param      pCtx    Connection context.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 static void lctrActPhyUpdateDisallow(lctrConnCtx_t *pCtx)
@@ -653,8 +627,6 @@ static const uint8_t lctrSlvPhyUpdateNextStateTbl[LCTR_PU_STATE_TOTAL][LCTR_PU_E
  *
  *  \param      pCtx    Connection context.
  *  \param      event   Event ID.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 static inline void lctrExecAction(lctrConnCtx_t *pCtx, uint8_t event)
@@ -761,8 +733,6 @@ static uint8_t lctrRemapEvent(lctrConnCtx_t *pCtx, uint8_t event)
  *
  *  \param      event   Subsystem event.
  *  \param      pCtx    Connection context.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 static void lctrResolveCollision(lctrConnCtx_t *pCtx, uint8_t event)
@@ -801,8 +771,6 @@ static void lctrResolveCollision(lctrConnCtx_t *pCtx, uint8_t event)
  *
  *  \param      pCtx    Connection context.
  *  \param      event   Subsystem event.
- *
- *  \return     None.
  *
  *  This routine will pend the active procedure and allow the phy update procedure to
  *  override it.

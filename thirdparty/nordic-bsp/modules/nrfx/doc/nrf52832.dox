@@ -2,6 +2,10 @@
 @page nrf52832_drivers nRF52832 Drivers
 @{
 
+@ref nrf_aar
+
+@ref nrf_bprot
+
 @ref nrf_ccm
 
 @ref nrf_clock
@@ -10,6 +14,8 @@
 
 @ref nrf_ecb
 
+@ref nrf_ficr
+
 @ref nrf_gpio
 
 @ref nrf_gpiote
@@ -17,6 +23,10 @@
 @ref nrf_i2s
 
 @ref nrf_lpcomp
+
+@ref nrf_mwu
+
+@ref nrf_nfct
 
 @ref nrf_nvmc
 

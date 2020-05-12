@@ -4,16 +4,16 @@
  *
  *  \brief  Link layer controller connection state machine implementation file.
  *
- *  Copyright (c) 2013-2018 Arm Ltd.
+ *  Copyright (c) 2013-2019 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -27,6 +27,7 @@
 #include "lctr_int_adv_slave.h"
 #include "lmgr_api_conn.h"
 #include "sch_api.h"
+#include "sch_api_ble.h"
 #include "wsf_assert.h"
 #include "wsf_trace.h"
 
@@ -36,8 +37,6 @@
  *
  *  \param      pCtx    Connection context.
  *  \param      event   State machine event.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrSlvConnExecuteSm(lctrConnCtx_t *pCtx, uint8_t event)
@@ -130,7 +129,7 @@ void lctrSlvConnExecuteSm(lctrConnCtx_t *pCtx, uint8_t event)
 
     case LCTR_CONN_STATE_ESTABLISHED_STARTUP:
       LL_TRACE_INFO1("lctrSlvConnExecuteSm: state=ESTABLISHED_STARTUP, event=%u", event);
-      switch(event)
+      switch (event)
       {
         case LCTR_CONN_SLV_INIT_STARTUP_LLCP:
           pCtx->state = LCTR_CONN_STATE_ESTABLISHED_READY;
@@ -217,8 +216,6 @@ void lctrSlvConnExecuteSm(lctrConnCtx_t *pCtx, uint8_t event)
  *
  *  \param      pCtx    Connection context.
  *  \param      event   State machine event.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrConnStatelessEventHandler(lctrConnCtx_t *pCtx, uint8_t event)
@@ -227,6 +224,11 @@ void lctrConnStatelessEventHandler(lctrConnCtx_t *pCtx, uint8_t event)
   {
     case LCTR_CONN_TERMINATED:
       LL_TRACE_INFO2("lctrConnStatelessEventHandler: handle=%u, state=%u, event=TERMINATED", LCTR_GET_CONN_HANDLE(pCtx), pCtx->state);
+      if (pCtx->role == LL_ROLE_SLAVE)
+      {
+        SchTmRemove(LCTR_GET_CONN_HANDLE(pCtx));
+      }
+
       lctrNotifyHostDisconnectInd(pCtx);
       lctrFreeConnCtx(pCtx);
       break;

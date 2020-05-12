@@ -4,16 +4,16 @@
  *
  *  \brief  HCI vendor specific functions for generic controllers.
  *
- *  Copyright (c) 2011-2018 Arm Ltd.
+ *  Copyright (c) 2011-2018 Arm Ltd. All Rights Reserved.
  *
  *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -202,8 +202,17 @@ void hciCoreResetSequence(uint8_t *pMsg)
 
       case HCI_OPCODE_LE_READ_LOCAL_SUP_FEAT:
         /* parse and store event parameters */
-        BSTREAM_TO_UINT32(hciCoreCb.leSupFeat, pMsg);
+        BSTREAM_TO_UINT64(hciCoreCb.leSupFeat, pMsg);
 
+        /* if Isochronous Channels (Host support) is supported and included */
+        if (hciLeSupFeatCfg & HCI_LE_SUP_FEAT_ISO_HOST_SUPPORT)
+        {
+          HciLeSetHostFeatureCmd(HCI_LE_FEAT_BIT_ISO_HOST_SUPPORT, TRUE);
+          break;
+        }
+        /* Fallthrough */
+
+      case HCI_OPCODE_LE_SET_HOST_FEATURE:
         /* send next command in sequence */
         hciCoreReadResolvingListSize();
         break;

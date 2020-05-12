@@ -1,7 +1,7 @@
 /**
- * Copyright (c) 2012 - 2018, Nordic Semiconductor ASA
+ * Copyright (c) 2012 - 2019, Nordic Semiconductor ASA
  *
- *
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -37,8 +37,6 @@
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-
-//lint -e438
 
 #include <nrfx.h>
 #include "nrf_ecb.h"

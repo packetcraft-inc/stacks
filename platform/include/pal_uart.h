@@ -4,16 +4,16 @@
  *
  *  \brief      UART driver definition.
  *
- *  Copyright (c) 2018 ARM Ltd.
+ *  Copyright (c) 2018 ARM Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -44,9 +44,9 @@ typedef void (*PalUartCompCback_t)(void);
 /*! \brief      Peripheral configuration. */
 typedef struct
 {
-  uint32_t baud;                /*!< Baud rate. */
   PalUartCompCback_t rdCback;   /*!< Read data completion callback. */
   PalUartCompCback_t wrCback;   /*!< Write data completion callback. */
+  uint32_t baud;                /*!< Baud rate. */
   bool_t hwFlow;                /*!< Use HW Flow control */
 } PalUartConfig_t;
 
@@ -62,9 +62,10 @@ typedef enum
 /*! \brief      Reserved UART ID. */
 typedef enum
 {
-  PAL_UART_ID_USER      = 0x00,  /*!< UART 0. */
-  PAL_UART_ID_CHCI      = 0xF0,  /*!< UART CHCI. */
-  PAL_UART_ID_TERMINAL  = 0xF1,  /*!< UART TERMINAL. */
+  PAL_UART_ID_USER      = 0,    /*!< UART 0. */
+  PAL_UART_ID_CHCI      = 1,    /*!< UART CHCI. */
+  PAL_UART_ID_TERMINAL  = 2,    /*!< UART TERMINAL. */
+  PAL_UART_ID_MAX               /*!< Number of UART instances. */
 } PalUartId_t;
 
 /**************************************************************************************************

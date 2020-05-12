@@ -4,16 +4,16 @@
  *
  *  \brief  Device manager privacy module.
  *
- *  Copyright (c) 2011-2019 Arm Ltd.
+ *  Copyright (c) 2011-2019 Arm Ltd. All Rights Reserved.
  *
  *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -44,26 +44,39 @@
   Local Variables
 **************************************************************************************************/
 
-/* action function table */
+/* Privacy action function table */
 static const dmPrivAct_t dmPrivAct[] =
 {
   dmPrivActResolveAddr,
-  dmPrivActResAddrAesCmpl,
   dmPrivActAddDevToResList,
   dmPrivActRemDevFromResList,
   dmPrivActClearResList,
   dmPrivActSetAddrResEnable,
   dmPrivActSetPrivacyMode,
-  dmPrivActGenAddr,
-  dmPrivActGenAddrAesCmpl
+  dmPrivActGenAddr
 };
 
-/* Component function interface */
+/* Privacy component function interface */
 static const dmFcnIf_t dmPrivFcnIf =
 {
   dmPrivReset,
   dmPrivHciHandler,
   dmPrivMsgHandler
+};
+
+/* Privacy AES action function table */
+static const dmPrivAct_t dmPrivAesAct[] =
+{
+  dmPrivAesActResAddrAesCmpl,
+  dmPrivAesActGenAddrAesCmpl
+};
+
+/* Privacy AES component function interface */
+static const dmFcnIf_t dmPrivAesFcnIf =
+{
+  dmEmptyReset,
+  (dmHciHandler_t) dmEmptyHandler,
+  dmPrivAesMsgHandler
 };
 
 /* Control block */
@@ -123,7 +136,7 @@ void dmPrivActResolveAddr(dmPrivMsg_t *pMsg)
  *  \return None.
  */
 /*************************************************************************************************/
-void dmPrivActResAddrAesCmpl(dmPrivMsg_t *pMsg)
+void dmPrivAesActResAddrAesCmpl(dmPrivMsg_t *pMsg)
 {
   /* compare calculated value with hash */
   if (memcmp(dmPrivCb.hash, pMsg->aes.pCiphertext, DM_PRIV_HASH_LEN) == 0)
@@ -282,7 +295,7 @@ void dmPrivActGenAddr(dmPrivMsg_t *pMsg)
  *  \return None.
  */
 /*************************************************************************************************/
-void dmPrivActGenAddrAesCmpl(dmPrivMsg_t *pMsg)
+void dmPrivAesActGenAddrAesCmpl(dmPrivMsg_t *pMsg)
 {
   dmPrivGenAddrIndEvt_t *pAddrEvt = (dmPrivGenAddrIndEvt_t*) pMsg;
 
@@ -424,6 +437,21 @@ void dmPrivReset(void)
 
 /*************************************************************************************************/
 /*!
+ *  \brief  DM priv AES event handler.
+ *
+ *  \param  pMsg    WSF message.
+ *
+ *  \return None.
+ */
+/*************************************************************************************************/
+void dmPrivAesMsgHandler(wsfMsgHdr_t *pMsg)
+{
+  /* execute action function */
+  (*dmPrivAesAct[DM_MSG_MASK(pMsg->event)])((dmPrivMsg_t *) pMsg);
+}
+
+/*************************************************************************************************/
+/*!
  *  \brief  Initialize DM privacy module.
  *
  *  \return None.
@@ -431,7 +459,12 @@ void dmPrivReset(void)
 /*************************************************************************************************/
 void DmPrivInit(void)
 {
+  WsfTaskLock();
+
   dmFcnIfTbl[DM_ID_PRIV] = (dmFcnIf_t *) &dmPrivFcnIf;
+  dmFcnIfTbl[DM_ID_PRIV_AES] = (dmFcnIf_t *) &dmPrivAesFcnIf;
+
+  WsfTaskUnlock();
 }
 
 /*************************************************************************************************/

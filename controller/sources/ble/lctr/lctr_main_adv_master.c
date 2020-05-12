@@ -4,16 +4,16 @@
  *
  *  \brief  Link layer controller master scanning operation builder implementation file.
  *
- *  Copyright (c) 2013-2018 Arm Ltd.
+ *  Copyright (c) 2013-2018 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -46,8 +46,6 @@ lctrMstScanCtx_t lctrMstScan;
 /*************************************************************************************************/
 /*!
  *  \brief      Master scan reset handler.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 static void lctrMstScanResetHandler(void)
@@ -62,8 +60,6 @@ static void lctrMstScanResetHandler(void)
  *  \brief      Master scan message dispatcher.
  *
  *  \param      pMsg    Pointer to message buffer.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 static void lctrMstScanDisp(lctrMsgHdr_t *pMsg)
@@ -76,8 +72,6 @@ static void lctrMstScanDisp(lctrMsgHdr_t *pMsg)
  *  \brief      Advertising report notification.
  *
  *  \param      pRpt      Advertising report.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 static void lctrMstScanAdvRptNotify(LlAdvReportInd_t *pRpt)
@@ -113,7 +107,7 @@ static void lctrMstScanAdvRptNotify(LlAdvReportInd_t *pRpt)
  *  \param      pRpt          Advertising report indication.
  *  \param      pLocalMatch   Checks if the received ADV packet matches with local address.
  *
- *  \return     None.
+ *  \return  TRUE if report generated, FALSE if not.
  */
 /*************************************************************************************************/
 static bool_t lctrMstCreateAdvRpt(uint8_t *pAdvBuf, LlAdvReportInd_t *pRpt, bool_t *pLocalMatch)
@@ -194,8 +188,6 @@ static bool_t lctrMstCreateAdvRpt(uint8_t *pAdvBuf, LlAdvReportInd_t *pRpt, bool
 /*************************************************************************************************/
 /*!
  *  \brief      ADVB packet post-processing.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrMstRxAdvBPduHandler(void)
@@ -223,8 +215,6 @@ void lctrMstRxAdvBPduHandler(void)
 /*************************************************************************************************/
 /*!
  *  \brief      Direct ADVB packet post-processing.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrMstRxDirectAdvBPduHandler(void)
@@ -263,8 +253,6 @@ void lctrMstRxDirectAdvBPduHandler(void)
 /*************************************************************************************************/
 /*!
  *  \brief  Build scan discovery operation.
- *
- *  \return None.
  */
 /*************************************************************************************************/
 void lctrMstDiscoverBuildOp(void)
@@ -334,7 +322,7 @@ void lctrMstDiscoverBuildOp(void)
   {
     /* Attempt to obtain buffer on next advertising operation. */
     LL_TRACE_ERR0("Could not allocate advertising buffer");
-    // TODO need OOM recovery
+    /* TODO need OOM recovery */
     WSF_ASSERT(FALSE);
   }
 
@@ -346,7 +334,7 @@ void lctrMstDiscoverBuildOp(void)
       {
         /* Attempt to obtain buffer on next advertising operation. */
         LL_TRACE_ERR0("Could not allocate advertising buffer");
-        // TODO need OOM recovery
+        /* TODO need OOM recovery */
         WSF_ASSERT(FALSE);
       }
 
@@ -426,7 +414,7 @@ void lctrMstDiscoverBuildOp(void)
   lctrMstScan.shutdown = FALSE;
 
   SchInsertNextAvailable(pOp);
-  lctrMstScan.scanWinStart = pOp->due;
+  lctrMstScan.scanWinStartUsec = pOp->dueUsec;
 }
 
 
@@ -435,8 +423,6 @@ void lctrMstDiscoverBuildOp(void)
  *  \brief      Cleanup resources on advertising operation termination.
  *
  *  \param      pCtx    Scan context.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrMstScanCleanupOp(lctrMstScanCtx_t *pCtx)
@@ -524,8 +510,6 @@ uint8_t lctrScanChanSelectNext(uint8_t chanIdx, uint8_t chanMap)
  *  \param      reason          Status code.
  *  \param      peerAddrType    Peer address type.
  *  \param      peerAddr        Peer address.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrScanNotifyHostInitiateError(uint8_t reason, uint8_t peerAddrType, uint64_t peerAddr)
@@ -556,8 +540,6 @@ void lctrScanNotifyHostInitiateError(uint8_t reason, uint8_t peerAddrType, uint6
  *
  *  \param      pAdvFilt    Advertising report filter data.
  *  \param      filtEna     Enable advertising report filtering.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrAdvRptEnable(lctrAdvRptFilt_t *pAdvFilt, bool_t filtEna)
@@ -689,8 +671,6 @@ bool_t lctrAdvRptCheckDuplicate(lctrAdvRptFilt_t *pAdvFilt, uint64_t hash)
  *
  *  \param      pAdvFilt    Advertising report filter data.
  *  \param      hash        Advertising report hash.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrAdvRptAddEntry(lctrAdvRptFilt_t *pAdvFilt, uint64_t hash)
@@ -720,8 +700,6 @@ void lctrAdvRptAddEntry(lctrAdvRptFilt_t *pAdvFilt, uint64_t hash)
 /*************************************************************************************************/
 /*!
  *  \brief      Initialize link layer controller resources for scanning master.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void LctrMstScanInit(void)
@@ -748,8 +726,6 @@ void LctrMstScanInit(void)
 /*************************************************************************************************/
 /*!
  *  \brief      Set default values for scanning master.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void LctrMstScanDefaults(void)
@@ -760,8 +736,6 @@ void LctrMstScanDefaults(void)
 /*************************************************************************************************/
 /*!
  *  \brief      Increment number of pending advertising reports.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrAdvReportsInc(void)
@@ -778,8 +752,6 @@ void lctrAdvReportsInc(void)
 /*************************************************************************************************/
 /*!
  *  \brief      Decrement number of pending advertising reports.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrAdvReportsDec(void)

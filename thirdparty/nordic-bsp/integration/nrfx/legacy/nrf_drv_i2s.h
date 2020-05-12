@@ -1,7 +1,7 @@
 /**
- * Copyright (c) 2015 - 2018, Nordic Semiconductor ASA
+ * Copyright (c) 2015 - 2019, Nordic Semiconductor ASA
  *
- *
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -61,22 +61,24 @@ typedef nrfx_i2s_config_t   nrf_drv_i2s_config_t;
 typedef nrfx_i2s_buffers_t  nrf_drv_i2s_buffers_t;
 
 /** @brief Macro for forwarding the new implementation. */
-#define NRF_DRV_I2S_PIN_NOT_USED            NRFX_I2S_PIN_NOT_USED
+#define NRF_DRV_I2S_PIN_NOT_USED               NRFX_I2S_PIN_NOT_USED
 /** @brief Macro for forwarding the new implementation. */
-#define NRF_DRV_I2S_FLAG_SYNCHRONIZED_MODE  NRFX_I2S_FLAG_SYNCHRONIZED_MODE
+#define NRF_DRV_I2S_FLAG_SYNCHRONIZED_MODE     NRFX_I2S_FLAG_SYNCHRONIZED_MODE
 /** @brief Macro for forwarding the new implementation. */
-#define NRF_DRV_I2S_DEFAULT_CONFIG          NRFX_I2S_DEFAULT_CONFIG
+#define NRF_DRV_I2S_DEFAULT_CONFIG             NRFX_I2S_DEFAULT_CONFIG
 /** @brief Macro for forwarding the new implementation. */
-#define nrf_drv_i2s_data_handler_t          nrfx_i2s_data_handler_t
+#define NRF_DRV_I2S_STATUS_NEXT_BUFFERS_NEEDED NRFX_I2S_STATUS_NEXT_BUFFERS_NEEDED
+/** @brief Macro for forwarding the new implementation. */
+#define nrf_drv_i2s_data_handler_t             nrfx_i2s_data_handler_t
 
 /** @brief Macro for forwarding the new implementation. */
-#define nrf_drv_i2s_uninit                  nrfx_i2s_uninit
+#define nrf_drv_i2s_uninit                     nrfx_i2s_uninit
 /** @brief Macro for forwarding the new implementation. */
-#define nrf_drv_i2s_start                   nrfx_i2s_start
+#define nrf_drv_i2s_start                      nrfx_i2s_start
 /** @brief Macro for forwarding the new implementation. */
-#define nrf_drv_i2s_next_buffers_set        nrfx_i2s_next_buffers_set
+#define nrf_drv_i2s_next_buffers_set           nrfx_i2s_next_buffers_set
 /** @brief Macro for forwarding the new implementation. */
-#define nrf_drv_i2s_stop                    nrfx_i2s_stop
+#define nrf_drv_i2s_stop                       nrfx_i2s_stop
 
 /**
  * @brief Function for initializing the I2S driver.

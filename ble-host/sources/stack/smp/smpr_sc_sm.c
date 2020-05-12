@@ -4,16 +4,16 @@
  *
  *  \brief  SMP Secure Connections initiator state machine.
  *
- *  Copyright (c) 2010-2018 Arm Ltd.
+ *  Copyright (c) 2010-2019 Arm Ltd. All Rights Reserved.
  *
  *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -38,6 +38,7 @@ enum
   SMPR_SC_ACT_NONE,                 /*!< No Action */
   SMPR_SC_ACT_CLEANUP,              /*!< Process Pairing Cleanup */
   SMPR_SC_ACT_PAIRING_FAILED,       /*!< Process Pairing Failed */
+  SMPR_SC_ACT_SEC_REQ_TO,           /*!< Process Response timeout on security request */
   SMPR_SC_ACT_PAIRING_CANCEL,       /*!< Process Pairing Canceled */
   SMPR_SC_ACT_SEND_PUB_KEY,         /*!< Process Send Public Key */
   SMPR_SC_ACT_STORE_LEGACY_PIN,     /*!< Process Store Legacy Pin */
@@ -108,6 +109,7 @@ static const smpAct_t smprScActionTbl[] =
   smpActNone,
   smpScActCleanup,
   smpScActPairingFailed,
+  smpActSecReqTimeout,
   smpScActPairingCancel,
   smprScActSendPubKey,
   smpActStorePin,
@@ -202,6 +204,8 @@ static const smpTblEntry_t smprScStateTblApiPairReq[] =
   {SMP_MSG_API_CANCEL_REQ,      SMPR_SC_SM_ST_IDLE,                          SMPR_SC_ACT_CLEANUP},
   {SMP_MSG_DM_ENCRYPT_CMPL,     SMPR_SC_SM_ST_IDLE,                          SMPR_SC_ACT_CLEANUP},
   {SMP_MSG_DM_ENCRYPT_FAILED,   SMPR_SC_SM_ST_IDLE,                          SMPR_SC_ACT_CLEANUP},
+  {SMP_MSG_INT_RSP_TIMEOUT,     SMPR_SC_SM_ST_API_PAIR_REQ,                  SMPR_SC_ACT_SEC_REQ_TO},
+  {SMP_MSG_INT_CLEANUP,         SMPR_SC_SM_ST_IDLE,                          SMPR_SC_ACT_CLEANUP},
   {0,                           0,                                        0}
 };
 

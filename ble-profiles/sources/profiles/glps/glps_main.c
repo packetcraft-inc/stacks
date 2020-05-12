@@ -4,16 +4,16 @@
  *
  *  \brief  Glucose profile sensor.
  *
- *  Copyright (c) 2012-2019 Arm Ltd.
+ *  Copyright (c) 2012-2019 Arm Ltd. All Rights Reserved.
  *
  *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -541,7 +541,7 @@ static void glpsRacpAbort(dmConnId_t connId)
 static void glpsRacpReportNum(dmConnId_t connId, uint8_t oper, uint8_t *pOperand)
 {
   uint8_t status;
-  uint8_t numRec;
+  uint8_t numRec = 0;
 
   /* get number of records */
   status = glpsDbGetNumRecords(oper, pOperand, &numRec);
@@ -549,8 +549,6 @@ static void glpsRacpReportNum(dmConnId_t connId, uint8_t oper, uint8_t *pOperand
   if (status == CH_RACP_RSP_SUCCESS)
   {
     /* send response */
-    /* note: status check guarantees numRec has been initialized */
-    /* coverity[uninit_use_in_call] */
     glpsRacpSendNumRecRsp(connId, numRec);
   }
   else

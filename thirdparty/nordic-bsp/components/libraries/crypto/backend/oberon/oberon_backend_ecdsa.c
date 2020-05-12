@@ -1,7 +1,7 @@
 /**
- * Copyright (c) 2018, Nordic Semiconductor ASA
+ * Copyright (c) 2018 - 2019, Nordic Semiconductor ASA
  *
- *
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -54,7 +54,7 @@
 #include "nrf_crypto_ecdsa.h"
 #include "oberon_backend_eddsa.h"
 #include "nrf_crypto_eddsa_shared.h"
-#include "occ_ecdsa_p256.h"
+#include "ocrypto_ecdsa_p256.h"
 
 
 #define OBERON_HASH_SIZE_FOR_SECP256R1 (256 / 8)
@@ -84,7 +84,7 @@ ret_code_t nrf_crypto_backend_secp256r1_sign(
         return result;
     }
 
-    result = occ_ecdsa_p256_sign_hash(p_signature, p_data, p_prv->key, session_key);
+    result = ocrypto_ecdsa_p256_sign_hash(p_signature, p_data, p_prv->key, session_key);
 
     return result == 0 ? NRF_SUCCESS : NRF_ERROR_CRYPTO_INTERNAL;
 }
@@ -107,7 +107,7 @@ ret_code_t nrf_crypto_backend_secp256r1_verify(
         return NRF_ERROR_CRYPTO_INPUT_LENGTH;
     }
 
-    result = occ_ecdsa_p256_verify_hash(p_signature, p_data, p_pub->key);
+    result = ocrypto_ecdsa_p256_verify_hash(p_signature, p_data, p_pub->key);
 
     if (result != 0)
     {

@@ -4,16 +4,16 @@
  *
  *  \brief  Network implementation main module.
  *
- *  Copyright (c) 2010-2019 Arm Ltd.
+ *  Copyright (c) 2010-2019 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -1495,9 +1495,7 @@ static void meshBrToNwkPduRecvCback(meshBrInterfaceId_t brIfId, const uint8_t *p
 /*************************************************************************************************/
 static void meshNwkHandlePduSentEvent(uint8_t *pNwkPdu)
 {
-  meshNwkPduMeta_t *pNwkPduMeta = NULL;
-  uint16_t          idx = 0;
-  uint16_t          qCount = 0;
+  meshNwkPduMeta_t *pNwkPduMeta, *pPrev;
 
   if (pNwkPdu == NULL)
   {
@@ -1510,15 +1508,14 @@ static void meshNwkHandlePduSentEvent(uint8_t *pNwkPdu)
     return;
   }
 
-  /* Get queue count. */
-  qCount = WsfQueueCount(&(nwkCb.txPduQueue));
+  /* Set previous to NULL. */
+  pPrev = NULL;
+  /* Point to start of the queue. */
+  pNwkPduMeta = (meshNwkPduMeta_t*)(&(nwkCb.txPduQueue))->pHead;
 
   /* Iterate through the network queue. */
-  for(idx = 0; idx < qCount; idx++)
+  while (pNwkPduMeta != NULL)
   {
-    /* Dequeue a PDU with meta information. */
-    pNwkPduMeta = (meshNwkPduMeta_t *)WsfQueueDeq(&(nwkCb.txPduQueue));
-
     /* Check if the sent PDU is a reference of the PDU stored by the meta information. */
     /* Note: pNwkPduMeta cannot be NULL */
     /* coverity[dereference] */
@@ -1537,23 +1534,17 @@ static void meshNwkHandlePduSentEvent(uint8_t *pNwkPdu)
           (pNwkPduMeta->pduRetransCount == 0) &&
           (pNwkPduMeta->pduRetransTime == 0))
       {
+        /* Remove from queue */
+        WsfQueueRemove(&(nwkCb.txPduQueue), pNwkPduMeta, pPrev);
         WsfBufFree(pNwkPduMeta);
       }
-      else
-      {
-        /* Enqueue it back to the network tx queue
-         * as either timer needs it or there are still references pending.
-         */
-        WsfQueueEnq(&(nwkCb.txPduQueue), pNwkPduMeta);
-      }
+
       /* If the PDU was found end search. */
       break;
     }
-    else
-    {
-      /* Enqueue it back. */
-      WsfQueueEnq(&(nwkCb.txPduQueue), pNwkPduMeta);
-    }
+    /* Move to next entry */
+    pPrev = pNwkPduMeta;
+    pNwkPduMeta = (meshNwkPduMeta_t*)(pNwkPduMeta->pNext);
   }
 }
 /*************************************************************************************************/

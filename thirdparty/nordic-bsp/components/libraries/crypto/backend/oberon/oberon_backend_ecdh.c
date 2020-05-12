@@ -1,7 +1,7 @@
 /**
- * Copyright (c) 2018, Nordic Semiconductor ASA
+ * Copyright (c) 2018 - 2019, Nordic Semiconductor ASA
  *
- *
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -50,10 +50,10 @@
 #include "nrf_crypto_shared.h"
 
 #if NRF_MODULE_ENABLED(NRF_CRYPTO_BACKEND_OBERON_ECC_SECP256R1)
-#include "occ_ecdh_p256.h"
+#include "ocrypto_ecdh_p256.h"
 #endif
 #if NRF_MODULE_ENABLED(NRF_CRYPTO_BACKEND_OBERON_ECC_CURVE25519)
-#include "occ_curve25519.h"
+#include "ocrypto_curve25519.h"
 #endif
 
 
@@ -74,7 +74,7 @@ ret_code_t nrf_crypto_backend_secp256r1_ecdh_compute(
     nrf_crypto_backend_secp256r1_public_key_t const * p_pub =
         (nrf_crypto_backend_secp256r1_public_key_t const *)p_public_key;
 
-    result = occ_ecdh_p256_common_secret(p_shared_secret, p_prv->key, p_pub->key);
+    result = ocrypto_ecdh_p256_common_secret(p_shared_secret, p_prv->key, p_pub->key);
 
     if (result != 0)
     {
@@ -101,7 +101,7 @@ ret_code_t nrf_crypto_backend_curve25519_ecdh_compute(
 
     // Private key can be completely random at this point.
     // Oberon library updates bits in the key according to Curve25519 specification before use.
-    occ_curve25519_scalarmult(p_shared_secret, p_prv->key, p_pub->key);
+    ocrypto_curve25519_scalarmult(p_shared_secret, p_prv->key, p_pub->key);
 
 #if NRF_MODULE_ENABLED(NRF_CRYPTO_CURVE25519_BIG_ENDIAN)
     nrf_crypto_internal_swap_endian_in_place(p_shared_secret,

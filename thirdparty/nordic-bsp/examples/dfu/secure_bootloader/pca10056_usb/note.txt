@@ -1,0 +1,1 @@
+Note that Keil (arm5_no_packs) and IAR (iar) builds have not been updated as per the instructions and will require additional work to build which is outside of the scope of what Laird Connectivity offers.

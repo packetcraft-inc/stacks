@@ -4,16 +4,16 @@
  *
  *  \brief  Link layer controller master scan action routines.
  *
- *  Copyright (c) 2013-2018 Arm Ltd.
+ *  Copyright (c) 2013-2018 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -38,8 +38,6 @@ WSF_CT_ASSERT((LL_NUM_ADV_FILT <= 32));
  *  \brief      Common scan resource cleanup.
  *
  *  \param      pCtx    Scan context.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrScanCleanup(lctrMstScanCtx_t *pCtx)
@@ -82,8 +80,6 @@ void lctrScanCleanup(lctrMstScanCtx_t *pCtx)
 /*************************************************************************************************/
 /*!
  *  \brief      Start scan discovery.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrScanActDiscover(void)
@@ -118,8 +114,6 @@ void lctrScanActDiscover(void)
 /*************************************************************************************************/
 /*!
  *  \brief      Shutdown active scan operation.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrScanActShutdown(void)
@@ -140,8 +134,6 @@ void lctrScanActShutdown(void)
 /*************************************************************************************************/
 /*!
  *  \brief      Send scan operation confirm.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrScanActScanCnf(void)
@@ -152,8 +144,6 @@ void lctrScanActScanCnf(void)
 /*************************************************************************************************/
 /*!
  *  \brief      Send disallow scan host notification.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrScanActDisallowScan(void)
@@ -164,8 +154,6 @@ void lctrScanActDisallowScan(void)
 /*************************************************************************************************/
 /*!
  *  \brief      Operation self terminated (e.g. on connection indication).
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrScanActSelfTerm(void)
@@ -177,8 +165,6 @@ void lctrScanActSelfTerm(void)
 /*************************************************************************************************/
 /*!
  *  \brief      Terminated scan after host scan disable.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrScanActScanTerm(void)
@@ -192,8 +178,6 @@ void lctrScanActScanTerm(void)
 /*************************************************************************************************/
 /*!
  *  \brief      Terminated scan after host reset.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrScanActResetTerm(void)
@@ -205,8 +189,6 @@ void lctrScanActResetTerm(void)
 /*************************************************************************************************/
 /*!
  *  \brief      Update scan parameters.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrScanActUpdateScanParam(void)
@@ -219,8 +201,6 @@ void lctrScanActUpdateScanParam(void)
 /*************************************************************************************************/
 /*!
  *  \brief      Update scan filter.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrScanActUpdateScanFilt(void)

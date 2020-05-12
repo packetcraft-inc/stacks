@@ -92,9 +92,9 @@ __isr_vector:
   /* External Interrupts */
     .long   POWER_CLOCK_IRQHandler
     .long   RADIO_IRQHandler
-    .long   UARTE0_IRQHandler
-    .long   TWIM0_TWIS0_IRQHandler
-    .long   SPIM0_SPIS0_IRQHandler
+    .long   UARTE0_UART0_IRQHandler
+    .long   TWIM0_TWIS0_TWI0_IRQHandler
+    .long   SPIM0_SPIS0_SPI0_IRQHandler
     .long   0                           /*Reserved */
     .long   GPIOTE_IRQHandler
     .long   SAADC_IRQHandler
@@ -216,6 +216,29 @@ __isr_vector:
     .type Reset_Handler, %function
 Reset_Handler:
 
+    /* Workaround for Errata 185 RAM: RAM corruption at extreme corners 
+     * found at the Errata document for your device located
+     * at https://infocenter.nordicsemi.com/index.jsp */
+    
+    LDR     R0, =0x10000130
+    LDR     R0, [R0]
+    LDR     R1, =0x10000134
+    LDR     R1, [R1]
+    
+    CMP     R0, #0xA
+    BNE     skip
+    CMP     R1, #0x0
+    BNE     skip
+    
+    LDR     R0, =0x40000EE4
+    LDR     R2, [R0]
+    LDR     R3, =0xFFFFFF8F
+    ANDS    R2, R2, R3
+    LDR     R3, =0x00000040
+    ORRS    R2, R2, R3
+    STR     R2, [R0]
+    
+skip:
 
 /* Loop to copy data from read only memory to RAM.
  * The ranges of copy from/to are specified by following symbols:
@@ -365,9 +388,9 @@ Default_Handler:
 
     IRQ  POWER_CLOCK_IRQHandler
     IRQ  RADIO_IRQHandler
-    IRQ  UARTE0_IRQHandler
-    IRQ  TWIM0_TWIS0_IRQHandler
-    IRQ  SPIM0_SPIS0_IRQHandler
+    IRQ  UARTE0_UART0_IRQHandler
+    IRQ  TWIM0_TWIS0_TWI0_IRQHandler
+    IRQ  SPIM0_SPIS0_SPI0_IRQHandler
     IRQ  GPIOTE_IRQHandler
     IRQ  SAADC_IRQHandler
     IRQ  TIMER0_IRQHandler

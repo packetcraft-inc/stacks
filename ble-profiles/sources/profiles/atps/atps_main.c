@@ -3,16 +3,16 @@
  *
  *  \brief  Asset Tracking profile server.
  *
- *  Copyright (c) 2018-2019 Arm Ltd.
+ *  Copyright (c) 2018-2019 Arm Ltd. All Rights Reserved.
  *
  *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -32,23 +32,12 @@
 #include "svc_cte.h"
 
 /**************************************************************************************************
-  Macros
-**************************************************************************************************/
-
-/*! Asset tracking profile connection states. */
-#define ATPS_STATE_ACL_DISABLED             0
-#define ATPS_STATE_ACL_STARTING             1
-#define ATPS_STATE_ACL_ENABLED              2
-#define ATPS_STATE_ACL_STOPPING             3
-
-/**************************************************************************************************
   Local Variables
 **************************************************************************************************/
 
 /*! Asset Tracking Profile Server connection control block. */
 typedef struct
 {
-  uint8_t  state;                     /*! Connection state. */
   uint8_t  enableBits;                /*! Constant Tone Extension enable. */
   uint8_t  minLen;                    /*! Constant Tone Extension minimum length. */
   uint8_t  minTxCount;                /*! Constant Tone Extension minimum transmit count. */
@@ -98,9 +87,8 @@ static uint8_t atpsCteSetEnable(dmConnId_t connId, uint8_t enableBits)
 
   if (enableAcl)
   {
-    if (pCcb->state == ATPS_STATE_ACL_DISABLED)
+    if (DmConnCteGetRspState(connId) == DM_CONN_CTE_STATE_IDLE)
     {
-      pCcb->state = ATPS_STATE_ACL_STARTING;
       DmConnCteTxConfig(connId, HCI_CTE_TYPE_PERMIT_AOA_RSP_BIT, pCcb->numAntenna, pCcb->pAntennaIds);
 
       /* Delay write response */
@@ -109,9 +97,8 @@ static uint8_t atpsCteSetEnable(dmConnId_t connId, uint8_t enableBits)
   }
   else
   {
-    if (pCcb->state == ATPS_STATE_ACL_ENABLED)
+    if (DmConnCteGetRspState(connId) == DM_CONN_CTE_STATE_RESPONDING)
     {
-      pCcb->state = ATPS_STATE_ACL_STOPPING;
       DmConnCteRspStop(connId);
 
       /* Delay write response */
@@ -354,10 +341,6 @@ void AtpsProcDmMsg(dmEvt_t *pEvt)
       atpsCb.switchPatternMaxLen = pEvt->readAntennaInfo.switchPatternMaxLen;
       break;
 
-    case DM_CONN_OPEN_IND:
-      pCcb->state = ATPS_STATE_ACL_DISABLED;
-      break;
-
     case DM_CONN_CTE_TX_CFG_IND:
       if (pEvt->hdr.status == HCI_SUCCESS)
       {
@@ -366,7 +349,6 @@ void AtpsProcDmMsg(dmEvt_t *pEvt)
       else
       {
         AttsContinueWriteReq((dmConnId_t) pEvt->hdr.param, CTE_ENABLE_HDL, ATT_ERR_WRITE_REJ);
-        pCcb->state = ATPS_STATE_ACL_DISABLED;
       }
       break;
 
@@ -377,11 +359,6 @@ void AtpsProcDmMsg(dmEvt_t *pEvt)
       if (status == ATT_SUCCESS)
       {
         pCcb->enableBits |= CTE_ENABLE_ACL_BIT;
-        pCcb->state = ATPS_STATE_ACL_ENABLED;
-      }
-      else
-      {
-        pCcb->state = ATPS_STATE_ACL_DISABLED;
       }
       break;
 
@@ -392,23 +369,10 @@ void AtpsProcDmMsg(dmEvt_t *pEvt)
       if (status == ATT_SUCCESS)
       {
         pCcb->enableBits &= ~CTE_ENABLE_ACL_BIT;
-        pCcb->state = ATPS_STATE_ACL_DISABLED;
-      }
-      else
-      {
-        pCcb->state = ATPS_STATE_ACL_ENABLED;
       }
       break;
 
     case DM_CTE_REQ_FAIL_IND:
-      if (pCcb->state == ATPS_STATE_ACL_STARTING)
-      {
-        pCcb->state = ATPS_STATE_ACL_DISABLED;
-      }
-      else if (pCcb->state == ATPS_STATE_ACL_STOPPING)
-      {
-        pCcb->state = ATPS_STATE_ACL_ENABLED;
-      }
       break;
 
     default:

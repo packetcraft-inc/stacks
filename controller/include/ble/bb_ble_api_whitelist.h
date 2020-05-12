@@ -4,16 +4,16 @@
  *
  *  \brief      BLE baseband whitelist interface file.
  *
- *  Copyright (c) 2016-2017 ARM Ltd.
+ *  Copyright (c) 2016-2017 ARM Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -65,8 +65,6 @@ uint8_t BbBleWhiteListGetSize(void);
 /*!
  *  \brief      Clear all white list entries.
  *
- *  \return     None.
- *
  *  Clear all white list entries stored in the BB.
  *
  *  \note       No resource synchronization is required to modify the white list resource as
@@ -112,8 +110,6 @@ bool_t BbBleWhiteListRemove(bool_t randAddr, uint64_t addr);
 /*************************************************************************************************/
 /*!
  *  \brief      Add anonymous device to the white list.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void BbBleWhiteListAddAnonymous(void);
@@ -121,8 +117,6 @@ void BbBleWhiteListAddAnonymous(void);
 /*************************************************************************************************/
 /*!
  *  \brief      Remove anonymous device from the white list.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void BbBleWhiteListRemoveAnonymous(void);

@@ -1,7 +1,7 @@
 /**
- * Copyright (c) 2017 - 2018, Nordic Semiconductor ASA
+ * Copyright (c) 2017 - 2019, Nordic Semiconductor ASA
  *
- *
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -61,11 +61,21 @@ extern "C" {
     // SPI1, SPIS1, TWI1
     #define NRFX_PRS_BOX_1_ADDR     NRF_SPI1
 #elif defined(NRF52810_XXAA)
-    // TWIM0, TWIS0
+    // TWIM0, TWIS0, TWI0
     #define NRFX_PRS_BOX_0_ADDR     NRF_TWIM0
-    // SPIM0, SPIS0
+    // SPIM0, SPIS0, SPI0
     #define NRFX_PRS_BOX_1_ADDR     NRF_SPIM0
-#elif defined(NRF52832_XXAA) || defined (NRF52832_XXAB)
+    // UARTE0, UART0
+    #define NRFX_PRS_BOX_2_ADDR     NRF_UARTE0
+#elif defined(NRF52811_XXAA)
+    // TWIM0, TWIS0, TWI0, SPIM1, SPIS1, SPI1
+    #define NRFX_PRS_BOX_0_ADDR     NRF_TWIM0
+    // SPIM0, SPIS0, SPI0
+    #define NRFX_PRS_BOX_1_ADDR     NRF_SPIM0
+    // UART0, UARTE0
+    #define NRFX_PRS_BOX_2_ADDR     NRF_UART0
+#elif defined(NRF52832_XXAA) || defined(NRF52832_XXAB) || \
+      defined(NRF52833_XXAA) || defined(NRF52840_XXAA)
     // SPIM0, SPIS0, TWIM0, TWIS0, SPI0, TWI0
     #define NRFX_PRS_BOX_0_ADDR     NRF_SPIM0
     // SPIM1, SPIS1, TWIM1, TWIS1, SPI1, TWI1
@@ -76,17 +86,15 @@ extern "C" {
     #define NRFX_PRS_BOX_3_ADDR     NRF_COMP
     // UARTE0, UART0
     #define NRFX_PRS_BOX_4_ADDR     NRF_UARTE0
-#elif defined(NRF52840_XXAA)
-    // SPIM0, SPIS0, TWIM0, TWIS0, SPI0, TWI0
-    #define NRFX_PRS_BOX_0_ADDR     NRF_SPIM0
-    // SPIM1, SPIS1, TWIM1, TWIS1, SPI1, TWI1
-    #define NRFX_PRS_BOX_1_ADDR     NRF_SPIM1
-    // SPIM2, SPIS2, SPI2
-    #define NRFX_PRS_BOX_2_ADDR     NRF_SPIM2
-    // COMP, LPCOMP
-    #define NRFX_PRS_BOX_3_ADDR     NRF_COMP
-    // UARTE0, UART0
-    #define NRFX_PRS_BOX_4_ADDR     NRF_UARTE0
+#elif defined(NRF9160_XXAA)
+    // UARTE0, SPIM0, SPIS0, TWIM0, TWIS0
+    #define NRFX_PRS_BOX_0_ADDR     NRF_UARTE0
+    // UARTE1, SPIM1, SPIS1, TWIM1, TWIS1
+    #define NRFX_PRS_BOX_1_ADDR     NRF_UARTE1
+    // UARTE2, SPIM2, SPIS2, TWIM2, TWIS2
+    #define NRFX_PRS_BOX_2_ADDR     NRF_UARTE2
+    // UARTE3, SPIM3, SPIS3, TWIM3, TWIS3
+    #define NRFX_PRS_BOX_3_ADDR     NRF_UARTE3
 #else
     #error "Unknown device."
 #endif
@@ -124,6 +132,7 @@ nrfx_err_t nrfx_prs_acquire(void       const * p_base_addr,
  */
 void nrfx_prs_release(void const * p_base_addr);
 
+/** @} */
 
 void nrfx_prs_box_0_irq_handler(void);
 void nrfx_prs_box_1_irq_handler(void);
@@ -131,7 +140,6 @@ void nrfx_prs_box_2_irq_handler(void);
 void nrfx_prs_box_3_irq_handler(void);
 void nrfx_prs_box_4_irq_handler(void);
 
-/** @} */
 
 #ifdef __cplusplus
 }

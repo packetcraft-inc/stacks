@@ -4,16 +4,16 @@
  *
  *  \brief  Friend module implementation.
  *
- *  Copyright (c) 2010-2019 Arm Ltd.
+ *  Copyright (c) 2010-2019 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -850,29 +850,42 @@ static void meshFriendNetKeyDelNotifyCback(uint16_t netKeyIndex)
  *  \brief     Handles Poll Timeout Timer get.
  *
  *  \param[in] lpnAddr      LPN address.
- *  \param[in] netKeyIndex  NetKey index.
  *
- *  \return    Poll Timer Timeout value.
+ *  \return    Min Poll Timer Timeout value.
  */
 /*************************************************************************************************/
-static uint32_t meshFriendPollTimeoutGetCback(meshAddress_t lpnAddr, uint16_t netKeyIndex)
+static uint32_t meshFriendPollTimeoutGetCback(meshAddress_t lpnAddr)
 {
-  meshFriendLpnCtx_t *pCtx;
+  meshFriendLpnCtx_t *pCtx = friendCb.pLpnCtxTbl;
+  uint32_t minTimeout = 0xFFFFFFFF;
+  uint32_t idx;
+
+  /* Errata 10087: For each Low Power node, the entry in the PollTimeout List holds the current
+   * value of the PollTimeout timer. If there are multiple friendship relationships set up on
+   * multiple subnets, the value held on the list is the minimum value of all PollTimeout timers
+   * for all friendship relationships the Friend Node has established with the Low Power node.
+   * The list is indexed by Low Power node primary element address.
+   */
+  for (idx = 0; idx < GET_MAX_NUM_CTX(); idx++)
+  {
+    if ((pCtx->inUse) && (pCtx->lpnAddr == lpnAddr) &&
+        (pCtx->friendSmState == FRIEND_ST_ESTAB) &&
+        (pCtx->estabInfo.pollTimeout < minTimeout))
+    {
+      minTimeout = pCtx->estabInfo.pollTimeout;
+    }
+
+    pCtx++;
+  }
 
   /* Check if friendship exists. */
-  if((pCtx = meshFriendLpnInfoToCtx(lpnAddr, netKeyIndex)) == NULL)
+  if(minTimeout == 0xFFFFFFFF)
   {
-    return 0;
+    minTimeout = 0;
   }
 
-  /* Check if friendship is established. */
-  if(pCtx->friendSmState != FRIEND_ST_ESTAB)
-  {
-    return 0;
-  }
-
-  /* Return Poll Timeout in units of 100 ms. */
-  return pCtx->estabInfo.pollTimeout;
+  /* Return minimum Poll Timeout in units of 100 ms. */
+  return minTimeout;
 }
 
 /*************************************************************************************************/

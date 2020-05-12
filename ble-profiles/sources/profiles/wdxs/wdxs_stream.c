@@ -4,16 +4,16 @@
  *
  *  \brief  Wireless Data Exchange profile implementation - Stream Example.
  *
- *  Copyright (c) 2013-2018 Arm Ltd.
+ *  Copyright (c) 2013-2018 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -62,7 +62,7 @@ static uint8_t wdxsStreamWaveform = WDXS_STREAM_WAVEFORM_SINE;
 /*************************************************************************************************/
 
 /* Prototype of stream read function */
-static uint8_t wdxsStreamRead(uint8_t *pBuf, uint32_t address, uint32_t len);
+static uint8_t wdxsStreamRead(uint8_t *pBuf, uint8_t *pAddress, uint32_t len);
 
 /* Example media control structure for a stream */
 static const wsfEfsMedia_t WDXS_StreamMedia =
@@ -86,13 +86,13 @@ static const wsfEfsMedia_t WDXS_StreamMedia =
  *  \brief  Example of a media read function that generates a Sine Wave.
  *
  *  \param  pBuf     buffer to hold stream data.
- *  \param  address  unused in streams.
+ *  \param  pAddress unused in streams.
  *  \param  len      size of pBuf in bytes.
  *
  *  \return None.
  */
 /*************************************************************************************************/
-static uint8_t wdxsSineRead(uint8_t *pBuf, uint32_t address, uint32_t len)
+static uint8_t wdxsSineRead(uint8_t *pBuf, uint8_t *pAddress, uint32_t len)
 {
   static int8_t incr = 1;
   static uint8_t dataVal = 0;
@@ -119,13 +119,13 @@ static uint8_t wdxsSineRead(uint8_t *pBuf, uint32_t address, uint32_t len)
  *  \brief  Example of a media read function  that generates a Step Wave.
  *
  *  \param  pBuf     buffer to hold stream data.
- *  \param  address  unused in streams.
+ *  \param  pAddress unused in streams.
  *  \param  len      size of pBuf in bytes.
  *
  *  \return None.
  */
 /*************************************************************************************************/
-static uint8_t wdxsStepRead(uint8_t *pBuf, uint32_t address, uint32_t len)
+static uint8_t wdxsStepRead(uint8_t *pBuf, uint8_t *pAddress, uint32_t len)
 {
   static int8_t count = 0;
   static int8_t incr = 25;
@@ -154,13 +154,13 @@ static uint8_t wdxsStepRead(uint8_t *pBuf, uint32_t address, uint32_t len)
  *  \brief  Example of a media read function that generates a Sawtooth Wave.
  *
  *  \param  pBuf     buffer to hold stream data.
- *  \param  address  unused in streams.
+ *  \param  pAddress unused in streams.
  *  \param  len      size of pBuf in bytes.
  *
  *  \return None.
  */
 /*************************************************************************************************/
-static uint8_t wdxsSawtoothRead(uint8_t *pBuf, uint32_t address, uint32_t len)
+static uint8_t wdxsSawtoothRead(uint8_t *pBuf, uint8_t *pAddress, uint32_t len)
 {
   static int8_t incr = 1;
   static uint8_t dataVal = 0;
@@ -186,26 +186,26 @@ static uint8_t wdxsSawtoothRead(uint8_t *pBuf, uint32_t address, uint32_t len)
  *  \brief  Example of a media read function.
  *
  *  \param  pBuf     buffer to hold stream data.
- *  \param  address  unused in streams.
+ *  \param  pAddress unused in streams.
  *  \param  len      size of pBuf in bytes.
  *
  *  \return None.
  */
 /*************************************************************************************************/
-static uint8_t wdxsStreamRead(uint8_t *pBuf, uint32_t address, uint32_t len)
+static uint8_t wdxsStreamRead(uint8_t *pBuf, uint8_t *pAddress, uint32_t len)
 {
   switch(wdxsStreamWaveform)
   {
   case WDXS_STREAM_WAVEFORM_SINE:
-    wdxsSineRead(pBuf, address, len);
+    wdxsSineRead(pBuf, pAddress, len);
     break;
 
   case WDXS_STREAM_WAVEFORM_STEP:
-    wdxsStepRead(pBuf, address, len);
+    wdxsStepRead(pBuf, pAddress, len);
     break;
 
   case WDXS_STREAM_WAVEFORM_SAWTOOTH:
-    wdxsSawtoothRead(pBuf, address, len);
+    wdxsSawtoothRead(pBuf, pAddress, len);
     break;
   }
 

@@ -4,16 +4,16 @@
  *
  *  \brief  Link layer controller master scan action routines.
  *
- *  Copyright (c) 2013-2019 Arm Ltd.
+ *  Copyright (c) 2013-2019 Arm Ltd. All Rights Reserved.
  *
- *  Copyright (c) 2019 Packetcraft, Inc.
- *
+ *  Copyright (c) 2019-2020 Packetcraft, Inc.
+ *  
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -27,6 +27,7 @@
 #include "lctr_api_adv_master_ae.h"
 #include "lmgr_api_adv_master_ae.h"
 #include "sch_api.h"
+#include "sch_api_ble.h"
 #include "wsf_assert.h"
 #include "wsf_msg.h"
 #include "wsf_trace.h"
@@ -39,7 +40,8 @@
  *  \brief      Setup periodic scanning context.
  *
  *  \param      pPerCreateSync  Create sync control block.
- *  \param      pMsg            Create sync messgae.
+ *  \param      pMsg            Create sync message.
+ *  \param      createDispId    Dispatcher ID.
  *
  *  \return     TRUE if successful, FALSE otherwise.
  */
@@ -84,7 +86,7 @@ static bool_t lctrPerAdvSyncEstRptPack(lctrPerScanCtx_t *pPerScanCtx, lmgrPerAdv
   Bda64ToBstream(pRpt->addr, pPerScanCtx->advAddr);
   pRpt->addrType = pPerScanCtx->advAddrType;
   pRpt->advPhy = pPerScanCtx->rxPhys;
-  pRpt->advInterval = LCTR_PER_INTER_TO_MS(BB_TICKS_TO_US(pPerScanCtx->perInter));
+  pRpt->advInterval = LCTR_PER_INTER_TO_MS(pPerScanCtx->perInterUsec);
   pRpt->advClkAccuracy = pPerScanCtx->sca;
 
   return TRUE;
@@ -95,13 +97,18 @@ static bool_t lctrPerAdvSyncEstRptPack(lctrPerScanCtx_t *pPerScanCtx, lmgrPerAdv
  *  \brief      Common periodic scan resource cleanup.
  *
  *  \param      pPerScanCtx     Periodic scan context.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 static void lctrMstPerScanCleanupOp(lctrPerScanCtx_t *pPerScanCtx)
 {
   BbStop(BB_PROT_BLE);
+
+  if (pPerScanCtx->termCback)
+  {
+    pPerScanCtx->termCback(LCTR_GET_PER_SCAN_HANDLE(pPerScanCtx));
+  }
+
+  SchTmRemove(LCTR_GET_PER_SCAN_TM_HANDLE(pPerScanCtx));
 
   if (pPerScanCtx->filtParam.filterPolicy)
   {
@@ -118,8 +125,6 @@ static void lctrMstPerScanCleanupOp(lctrPerScanCtx_t *pPerScanCtx)
  *  \brief      Common scan resource cleanup.
  *
  *  \param      pExtScanCtx     Extended scan context.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 static void lctrMstExtScanCleanupOp(lctrExtScanCtx_t *pExtScanCtx)
@@ -158,8 +163,6 @@ static void lctrMstExtScanCleanupOp(lctrExtScanCtx_t *pExtScanCtx)
  *  \brief      Start scan discovery.
  *
  *  \param      pExtScanCtx     Extended scan context.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrExtScanActDiscover(lctrExtScanCtx_t *pExtScanCtx)
@@ -207,8 +210,6 @@ void lctrExtScanActDiscover(lctrExtScanCtx_t *pExtScanCtx)
  *  \brief      Update scan discovery.
  *
  *  \param      pExtScanCtx     Extended scan context.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrExtScanActUpdateDiscover(lctrExtScanCtx_t *pExtScanCtx)
@@ -221,24 +222,33 @@ void lctrExtScanActUpdateDiscover(lctrExtScanCtx_t *pExtScanCtx)
  *  \brief      Shutdown active scan operation.
  *
  *  \param      pExtScanCtx     Extended scan context.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrExtScanActShutdown(lctrExtScanCtx_t *pExtScanCtx)
 {
+  const uint8_t scanPhyIndex = (LCTR_GET_EXT_SCAN_HANDLE(pExtScanCtx) == LCTR_SCAN_PHY_CODED) ? LCTR_SCAN_PHY_CODED : LCTR_SCAN_PHY_1M;
+
   pExtScanCtx->shutdown = TRUE;
 
-  if (!pExtScanCtx->auxOpPending)
+  if (scanPhyIndex == lctrActiveExtScan.scanIndex)
   {
-    SchRemove(&pExtScanCtx->scanBod);
+    if (!pExtScanCtx->auxOpPending)
+    {
+      SchRemove(&pExtScanCtx->scanBod);
+    }
+    else
+    {
+      SchRemove(&pExtScanCtx->auxScanBod);
+    }
+
+    /* Shutdown completes with events generated in BOD end callback. */
   }
   else
   {
-    SchRemove(&pExtScanCtx->auxScanBod);
+    /* BOD of this scan context is not scheduled. No need to remove it. */
+    lctrActiveExtScan.scanMask &= ~(1 << scanPhyIndex);
+    lctrSendExtScanMsg(pExtScanCtx, LCTR_EXT_SCAN_MSG_TERMINATE);
   }
-
-  /* Shutdown completes with events generated in BOD end callback. */
 }
 
 /*************************************************************************************************/
@@ -246,8 +256,6 @@ void lctrExtScanActShutdown(lctrExtScanCtx_t *pExtScanCtx)
  *  \brief      Send scan operation confirm.
  *
  *  \param      pExtScanCtx     Extended scan context.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrExtScanActScanCnf(lctrExtScanCtx_t *pExtScanCtx)
@@ -257,11 +265,29 @@ void lctrExtScanActScanCnf(lctrExtScanCtx_t *pExtScanCtx)
 
 /*************************************************************************************************/
 /*!
+ *  \brief      Terminate a restarting scan (scan in terminate state due to controller-issued terminate).
+ *
+ *  \param      pExtScanCtx     Extended scan context.
+ */
+/*************************************************************************************************/
+void lctrExtScanHostDisable(lctrExtScanCtx_t *pExtScanCtx)
+{
+  if (lctrMstExtScan.scanTermByHost > 1)
+  {
+    LmgrSendExtScanEnableCnf(LL_ERROR_CODE_CMD_DISALLOWED);
+    return;
+  }
+
+  /* Start/Restart timers. */
+  WsfTimerStop(&lctrMstExtScan.tmrScanDur);
+  WsfTimerStop(&lctrMstExtScan.tmrScanPer);
+}
+
+/*************************************************************************************************/
+/*!
  *  \brief      Send disallow scan host notification.
  *
  *  \param      pExtScanCtx     Extended scan context.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrExtScanActDisallowScan(lctrExtScanCtx_t *pExtScanCtx)
@@ -274,11 +300,29 @@ void lctrExtScanActDisallowScan(lctrExtScanCtx_t *pExtScanCtx)
 
 /*************************************************************************************************/
 /*!
+ *  \brief      Send enable during terminate state.
+ *
+ *  \param      pExtScanCtx     Extended scan context.
+ */
+/*************************************************************************************************/
+void lctrExtScanActHostEnable(lctrExtScanCtx_t *pExtScanCtx)
+{
+  if (lctrMstExtScan.scanTermByHost)
+  {
+    LmgrSendExtScanEnableCnf(LL_ERROR_CODE_CMD_DISALLOWED);
+  }
+  else
+  {
+    LmgrSendExtScanEnableCnf(LL_SUCCESS);
+  }
+
+}
+
+/*************************************************************************************************/
+/*!
  *  \brief      Terminated scan after host scan disable.
  *
  *  \param      pExtScanCtx     Extended scan context.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrExtScanActScanTerm(lctrExtScanCtx_t *pExtScanCtx)
@@ -296,8 +340,6 @@ void lctrExtScanActScanTerm(lctrExtScanCtx_t *pExtScanCtx)
  *  \brief      Terminated scan after internal scan disable.
  *
  *  \param      pExtScanCtx     Extended scan context.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrExtScanActSelfTerm(lctrExtScanCtx_t *pExtScanCtx)
@@ -308,8 +350,6 @@ void lctrExtScanActSelfTerm(lctrExtScanCtx_t *pExtScanCtx)
 /*************************************************************************************************/
 /*!
  *  \brief      Create sync action function.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrCreateSyncActCreate(void)
@@ -337,8 +377,6 @@ void lctrCreateSyncActCreate(void)
 /*************************************************************************************************/
 /*!
  *  \brief      Create sync done action function.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrCreateSyncActDone(void)
@@ -352,8 +390,6 @@ void lctrCreateSyncActDone(void)
 /*************************************************************************************************/
 /*!
  *  \brief      Create sync cancel action function.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrCreateSyncActCancel(void)
@@ -371,8 +407,6 @@ void lctrCreateSyncActCancel(void)
 /*************************************************************************************************/
 /*!
  *  \brief      Create sync failed action function.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrCreateSyncActFailed(void)
@@ -395,8 +429,6 @@ void lctrCreateSyncActFailed(void)
 /*************************************************************************************************/
 /*!
  *  \brief      Create sync terminate action function.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrCreateSyncActTerminate(void)
@@ -419,8 +451,6 @@ void lctrCreateSyncActTerminate(void)
 /*************************************************************************************************/
 /*!
  *  \brief      Transfer sync start action function.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrTransferSyncActStart(void)
@@ -450,7 +480,7 @@ void lctrTransferSyncActStart(void)
 
   /* Decode syncInfo */
   lctrUnpackSyncInfo(&trsfSyncInfo, pMsg->bSyncInfo);
-  pPerScanCtx->perInter = BB_US_TO_BB_TICKS(LCTR_PER_INTER_TO_US(trsfSyncInfo.syncInter));
+  pPerScanCtx->perInterUsec = LCTR_PER_INTER_TO_US(trsfSyncInfo.syncInter);
   pPerScanCtx->advSID = pMsg->advSID;
   pPerScanCtx->advAddrType = pMsg->advAddrType;
   pPerScanCtx->advAddr = pMsg->advAddr;
@@ -493,8 +523,6 @@ void lctrTransferSyncActStart(void)
 /*************************************************************************************************/
 /*!
  *  \brief      Transfer sync done action function.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrTransferSyncActDone(void)
@@ -504,8 +532,6 @@ void lctrTransferSyncActDone(void)
 /*************************************************************************************************/
 /*!
  *  \brief      Transfer sync failed action function.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrTransferSyncActFailed(void)
@@ -520,8 +546,6 @@ void lctrTransferSyncActFailed(void)
 /*************************************************************************************************/
 /*!
  *  \brief      Transfer sync cancel action function.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrTransferSyncActCancel(void)
@@ -533,8 +557,6 @@ void lctrTransferSyncActCancel(void)
 /*************************************************************************************************/
 /*!
  *  \brief      Transfer sync terminate action function.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrTransferSyncActTerminate(void)
@@ -552,8 +574,6 @@ void lctrTransferSyncActTerminate(void)
  *  \brief      Periodic scanning sync established action function.
  *
  *  \param      pPerScanCtx     Periodic scan context.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrPerScanActSyncEstd(lctrPerScanCtx_t *pPerScanCtx)
@@ -578,8 +598,6 @@ void lctrPerScanActSyncEstd(lctrPerScanCtx_t *pPerScanCtx)
  *  \brief      Periodic scanning sync terminate action function.
  *
  *  \param      pPerScanCtx     Periodic scan context.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrPerScanActSyncTerminate(lctrPerScanCtx_t *pPerScanCtx)
@@ -596,8 +614,6 @@ void lctrPerScanActSyncTerminate(lctrPerScanCtx_t *pPerScanCtx)
  *  \brief      Periodic scanning sync terminate done action function.
  *
  *  \param      pPerScanCtx     Periodic scan context.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrPerScanActSyncTerminateDone(lctrPerScanCtx_t *pPerScanCtx)
@@ -610,8 +626,6 @@ void lctrPerScanActSyncTerminateDone(lctrPerScanCtx_t *pPerScanCtx)
  *  \brief      Periodic scanning sync terminate action function.
  *
  *  \param      pPerScanCtx     Periodic scan context.
- *
- *  \return     None.
  */
 /*************************************************************************************************/
 void lctrPerScanActSyncTimeout(lctrPerScanCtx_t *pPerScanCtx)
@@ -629,28 +643,35 @@ void lctrPerScanActSyncTimeout(lctrPerScanCtx_t *pPerScanCtx)
 
 /*************************************************************************************************/
 /*!
- *  \brief      Process acad that need to be serviced.
+ *  \brief      Process ACAD that need to be serviced.
  *
- *  \param      pMsg     Acad message.
- *
- *  \return     None
+ *  \param      pMsg     ACAD message.
  */
 /*************************************************************************************************/
 void lctrPerScanActProcessAcad(lctrAcadMsg_t *pMsg)
 {
   lctrPerScanCtx_t *pPerScanCtx = LCTR_GET_PER_SCAN_CTX(pMsg->hdr.handle);
-  switch(pMsg->hdr.acadId)
+
+  switch (pMsg->hdr.acadId)
   {
     case LCTR_ACAD_ID_CHAN_MAP_UPDATE:
     {
-      lctrAcadChanMapUpd_t *pData = &pPerScanCtx->acadParams[pMsg->hdr.acadId].chanMapUpdate;
+      LctrAcadChanMapUpd_t *pChanMapUpd = &pPerScanCtx->acadParams[LCTR_ACAD_ID_CHAN_MAP_UPDATE].chanMapUpdate;
 
-      if ((pData->instant - pMsg->hdr.eventCtr) <= pMsg->hdr.skip)
+      if ((pChanMapUpd->instant - pMsg->hdr.eventCtr) <= pMsg->hdr.skip)
       {
-        pPerScanCtx->chanParam.chanMask = pData->chanMask;
+        pPerScanCtx->chanParam.chanMask = pChanMapUpd->chanMask;
         LmgrBuildRemapTable(&pPerScanCtx->chanParam);
-        pData->hdr.state = LCTR_ACAD_STATE_DISABLED;
+        pChanMapUpd->hdr.state = LCTR_ACAD_STATE_DISABLED;
       }
+      break;
+    }
+
+    case LCTR_ACAD_ID_BIG_INFO:
+    {
+      LctrAcadBigInfo_t *pBigInfo = &pPerScanCtx->acadParams[LCTR_ACAD_ID_BIG_INFO].bigInfo;
+      /* No action required. */
+      pBigInfo->hdr.state = LCTR_ACAD_STATE_DISABLED;
       break;
     }
 
