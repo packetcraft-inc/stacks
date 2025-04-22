@@ -112,3 +112,5 @@ LD_FLAGS        := -Wl,-Map=$(BIN:.elf=.map)
 LD_FLAGS        += -Wl,--gc-sections
 LD_FLAGS        += --specs=nano.specs
 LD_FLAGS        += --specs=nosys.specs
+LD_FLAGS 		+= /home/jennifer/workspace/stacks/thirdparty/seciot-bsp/libshakti.a
+

@@ -65,6 +65,8 @@ typedef enum
   PAL_UART_ID_USER      = 0,    /*!< UART 0. */
   PAL_UART_ID_CHCI      = 1,    /*!< UART CHCI. */
   PAL_UART_ID_TERMINAL  = 2,    /*!< UART TERMINAL. */
+  PAL_UART_ID_THREE     = 3,
+  PAL_UART_ID_FOUR      = 4,
   PAL_UART_ID_MAX               /*!< Number of UART instances. */
 } PalUartId_t;
 

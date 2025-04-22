@@ -23,7 +23,7 @@
 #--------------------------------------------------------------------------------------------------
 
 # GCC ARM cross toolchain
-CROSS_COMPILE   := arm-none-eabi-
+CROSS_COMPILE   := riscv64-unknown-elf-
 
 # Toolchain
 CC              := $(CROSS_COMPILE)gcc
@@ -49,7 +49,12 @@ DEP_FLAGS       := $(C_FLAGS) -MM -MF
 #--------------------------------------------------------------------------------------------------
 
 # Object files
-OBJ_FILES       := $(C_FILES:.c=.o)
+
+# Collect ASM files separately
+ASM_FILES := $(filter %.S,$(C_FILES))
+C_SRC_FILES := $(filter %.c,$(C_FILES))
+
+OBJ_FILES       := $(C_SRC_FILES:.c=.o) $(ASM_FILES:.S=.o)
 OBJ_FILES       := $(subst $(ROOT_DIR)/,$(INT_DIR)/,$(OBJ_FILES))
 OBJ_FILES       := $(subst $(BSP_DIR)/,$(INT_DIR)/,$(OBJ_FILES))
 OBJ_FILES       := $(subst ./,$(INT_DIR)/,$(OBJ_FILES))
@@ -68,11 +73,12 @@ all: $(BIN) show.options
 $(BIN): $(OBJ_FILES) $(LD_FILE)
 	@echo "+++ Linking: $@"
 	@mkdir -p $(BIN_DIR)
-	@$(LD) -o $(BIN) -T$(LD_FILE) $(LD_FLAGS) $(OBJ_FILES)
+	@$(LD) $(C_FLAGS) -o $(BIN) -T$(LD_FILE) $(LD_FLAGS) $(OBJ_FILES)
 	@$(OBJDUMP) -t $(BIN) > $(BIN:.elf=.sym)
 	@$(OBJCOPY) -O binary $(BIN) $(BIN:.elf=.bin)
 	@$(OBJCOPY) -O ihex $(BIN) $(BIN:.elf=.hex)
 	@$(OBJDUMP) -t $(BIN) > $(BIN:.elf=.sym)
+	@$(OBJDUMP) -D -S $(BIN) > $(BIN:.elf=.dump)
 	@echo "+++ Binary summary: $(BIN)"
 	@-$(SIZE) $(BIN)
 	@echo "+++ Section summary: $(BIN:.elf=.map)"
@@ -90,6 +96,12 @@ $(INT_DIR)/%.o: $(ROOT_DIR)/thirdparty/%.c
 	@echo "+++ Compiling: $<"
 	@mkdir -p $(dir $@)
 	@$(CC) $(filter-out -W%),$(C_FLAGS)) -c -o $@ $<
+	@$(if $(DEP),$(DEP) $(DEP_FLAGS) $(subst .o,.d,$@) -MP -MT $@ $<,)
+
+$(INT_DIR)/%.o: $(ROOT_DIR)/%.S
+	@echo "+++ Compiling: $<"
+	@mkdir -p $(dir $@)
+	@$(CC) $(filter-out -W%,$(C_FLAGS)) -c -o $@ $<
 	@$(if $(DEP),$(DEP) $(DEP_FLAGS) $(subst .o,.d,$@) -MP -MT $@ $<,)
 
 clean:

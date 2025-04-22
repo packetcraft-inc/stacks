@@ -266,14 +266,17 @@ void wsfOsDispatcher(void)
   taskEventMask = pTask->taskEventMask;
   pTask->taskEventMask = 0;
   WSF_CS_EXIT(cs);
+  printf("Task Event Mask: %d\n", taskEventMask);
 
   if (taskEventMask & WSF_MSG_QUEUE_EVENT)
   {
+    printf("Message Queue Event\n");
     /* handle msg queue */
     while ((pMsg = WsfMsgDeq(&pTask->msgQueue, &handlerId)) != NULL)
     {
       WSF_ASSERT(handlerId < WSF_MAX_HANDLERS);
       WSF_OS_SET_ACTIVE_HANDLER_ID(handlerId);
+      printf("Handler ID: %d\n", handlerId);
       (*pTask->handler[handlerId])(0, pMsg);
       WsfMsgFree(pMsg);
     }
@@ -281,17 +284,20 @@ void wsfOsDispatcher(void)
 
   if (taskEventMask & WSF_TIMER_EVENT)
   {
+    printf("Timer Event\n");
     /* service timers */
     while ((pTimer = WsfTimerServiceExpired(0)) != NULL)
     {
       WSF_ASSERT(pTimer->handlerId < WSF_MAX_HANDLERS);
       WSF_OS_SET_ACTIVE_HANDLER_ID(pTimer->handlerId);
+      printf("Handler ID: %d\n", pTimer->handlerId);
       (*pTask->handler[pTimer->handlerId])(0, &pTimer->msg);
     }
   }
 
   if (taskEventMask & WSF_HANDLER_EVENT)
   {
+    printf("Handler Event\n");
     /* service handlers */
     for (i = 0; i < WSF_MAX_HANDLERS; i++)
     {
@@ -386,11 +392,14 @@ void WsfOsEnterMainLoop(void)
 
   while (TRUE)
   {
+    printf("Timer Sleep Update\n");
     WsfTimerSleepUpdate();
+    printf("Os Dispatcher called\n");
     wsfOsDispatcher();
 
     activeFlag = FALSE;
 
+    printf("Num Functions: %d\n", wsfOs.numFunc);
     for (unsigned int i = 0; i < wsfOs.numFunc; i++)
     {
       if (wsfOs.sleepCheckFuncs[i])
@@ -399,9 +408,11 @@ void WsfOsEnterMainLoop(void)
       }
     }
 
+    printf("Active Flag: %d\n", activeFlag);
     if (!activeFlag)
     {
       WsfTimerSleep();
+      printf("Post sleep timer\n");
     }
   }
 }
