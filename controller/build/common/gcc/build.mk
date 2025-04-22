@@ -23,7 +23,7 @@
 #--------------------------------------------------------------------------------------------------
 
 # GCC ARM cross toolchain
-CROSS_COMPILE   := arm-none-eabi-
+CROSS_COMPILE   := riscv64-unknown-elf-
 
 # Toolchain
 CC              := $(CROSS_COMPILE)gcc

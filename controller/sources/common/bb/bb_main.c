@@ -124,7 +124,7 @@ static void bbProtStart(uint8_t protId)
  *  be called an equal number of time to disable the baseband.
  */
 /*************************************************************************************************/
-void BbStart(uint8_t protId)
+void BbStart(PalBbProt_t protId)
 {
   WSF_ASSERT(protId < BB_PROT_NUM);
 
@@ -170,7 +170,7 @@ static void bbProtStop(uint8_t protId)
  *              balanced to ensure that the hardware is disabled if and only if appropriate.
  */
 /*************************************************************************************************/
-void BbStop(uint8_t protId)
+void BbStop(PalBbProt_t protId)
 {
   WSF_ASSERT(protId < BB_PROT_NUM);
   WSF_ASSERT(bbCb.prot[protId].startCnt > 0);

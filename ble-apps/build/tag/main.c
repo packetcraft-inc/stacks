@@ -139,10 +139,12 @@ static void mainWsfInit(void)
 /*************************************************************************************************/
 int main(void)
 {
+  // __asm__ volatile("ebreak");
 #if defined(HCI_TR_EXACTLE) && (HCI_TR_EXACTLE == 1)
   /* Configurations must be persistent. */
   static BbRtCfg_t mainBbRtCfg;
 
+  PalSysInit();
   PalBbLoadCfg((PalBbCfg_t *)&mainBbRtCfg);
   LlGetDefaultRunTimeCfg(&mainLlRtCfg);
   #if (BT_VER >= LL_VER_BT_CORE_SPEC_5_0)

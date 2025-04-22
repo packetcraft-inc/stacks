@@ -63,19 +63,19 @@
 #endif
 
 /*! \brief  Number of RTC ticks per WSF timer tick. */
-#define WSF_TIMER_RTC_TICKS_PER_WSF_TICK  ((PAL_RTC_TICKS_PER_SEC + WSF_TIMER_TICKS_PER_SEC - 1) / (WSF_TIMER_TICKS_PER_SEC))
+#define WSF_TIMER_RTC_TICKS_PER_WSF_TICK  (PAL_RTC_TICKS_PER_SEC + WSF_TIMER_TICKS_PER_SEC)
 
 /*! \brief  Calculate number of elapsed WSF timer ticks. */
 #define WSF_RTC_TICKS_TO_WSF(x) ((x) / WSF_TIMER_RTC_TICKS_PER_WSF_TICK)
 
 /*! \brief  Mask of seconds part in RTC ticks. */
-#define WSF_TIMER_RTC_TICKS_SEC_MASK      (0x00FF8000)
+#define WSF_TIMER_RTC_TICKS_SEC_MASK      (0xFFF00000)
 
 /*! \brief  Addition of RTC ticks. */
-#define WSF_TIMER_RTC_ADD_TICKS(x, y)     (((x) + (y)) & PAL_MAX_RTC_COUNTER_VAL)
+#define WSF_TIMER_RTC_ADD_TICKS(x, y)     ((x) + (y))
 
 /*! \brief  Subtraction of RTC ticks. */
-#define WSF_TIMER_RTC_SUB_TICKS(x, y)     ((PAL_MAX_RTC_COUNTER_VAL + 1 + (x) - (y)) & PAL_MAX_RTC_COUNTER_VAL)
+#define WSF_TIMER_RTC_SUB_TICKS(x, y)     ((x) - (y))
 
 /*! \brief  Minimum RTC ticks required to go into sleep. */
 #define WSF_TIMER_MIN_RTC_TICKS_FOR_SLEEP (2)
@@ -86,8 +86,7 @@
  * Calculate elapsed ticks since last WSF timer update, with remainder;
  * since the RTC timer is 24 bit set the 24th bit to handle any underflow.
  */
-#define WSF_TIMER_RTC_ELAPSED_TICKS(x)    ((PAL_MAX_RTC_COUNTER_VAL + 1 + (x) - wsfTimerRtcLastTicks \
-                                  + wsfTimerRtcRemainder) & PAL_MAX_RTC_COUNTER_VAL)
+#define WSF_TIMER_RTC_ELAPSED_TICKS(x)    WSF_TIMER_RTC_SUB_TICKS((x), wsfTimerRtcLastTicks)
 
 /**************************************************************************************************
   Global Variables

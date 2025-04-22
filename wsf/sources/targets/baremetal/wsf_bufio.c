@@ -200,10 +200,10 @@ uint32_t WsfBufIoUartInit(void *pBuf, uint32_t size)
   cfg.rdCback = wsfBufIoUartRxHandler;
   cfg.wrCback = wsfBufIoUartTxHandler;
 
-  PalUartInit(PAL_UART_ID_TERMINAL, &cfg);
+  PalUartInit(PAL_UART_ID_FOUR, &cfg);
 
   /* Start UART RX. */
-  PalUartReadData(PAL_UART_ID_TERMINAL, WsfBufIoCb.rx.buf, 1);
+  PalUartReadData(PAL_UART_ID_FOUR, WsfBufIoCb.rx.buf, 1);
 
   WsfBufIoCb.initialized = TRUE;
   return WsfBufIoCb.tx.size;

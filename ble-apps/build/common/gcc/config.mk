@@ -79,6 +79,8 @@ C_FLAGS         += -std=c99
 C_FLAGS         += -Wall -Wextra -Wno-unused-parameter -Wshadow -Wno-expansion-to-defined #-Wundef
 C_FLAGS         += -fno-common -fomit-frame-pointer
 C_FLAGS         += -ffunction-sections -fdata-sections
+C_FLAGS 		+= -g
+
 ifeq ($(DEBUG),2)
 C_FLAGS         += -O0 -g
 else
@@ -96,6 +98,9 @@ AR_FLAGS        := rcs
 
 # Linker flags
 LD_FLAGS        := -Wl,-Map=$(BIN:.elf=.map)
-LD_FLAGS        += -Wl,--gc-sections
+LD_FLAGS		:= -march=rv64imafd_zicsr_zifencei -mabi=lp64d 
+LD_FLAGS        += -Os -Wl,--gc-sections
 LD_FLAGS        += --specs=nano.specs
 LD_FLAGS        += --specs=nosys.specs
+LD_FLAGS		+= -static -nostartfiles -lm -lgcc
+LD_FLAGS 		+= /home/jennifer/workspace/stacks/thirdparty/seciot-bsp/libshakti.a
